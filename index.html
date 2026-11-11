@@ -137,12 +137,34 @@
             transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* 単語ごとのカラオケ風ハイライト */
+        /* 単語ごとのカラオケ風ハイライト & タップインスペクター */
         .stage-word {
             display: inline-block;
             margin: 0 0.18em;
             color: rgba(255, 255, 255, 0.32);
             transition: color 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), text-shadow 0.18s ease;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 0 2px;
+        }
+
+        .stage-word:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* ブラインド・穴埋めマスクモード */
+        .stage-word.blinded {
+            filter: blur(6px);
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            user-select: none;
+            transition: filter 0.3s ease, background 0.3s ease;
+        }
+
+        .stage-word.blinded.revealed,
+        .stage-word.blinded.current {
+            filter: blur(0px);
+            background: transparent;
         }
 
         .stage-word.passed {
@@ -260,6 +282,12 @@
         </div>
 
         <div class="flex items-center space-x-2">
+            <!-- PWA インストールガイド -->
+            <button id="stage-pwa-btn" class="glass-pill px-3 py-1.5 rounded-full text-xs font-mono-tech text-slate-300 hover:text-white flex items-center gap-1.5" title="ホーム画面に追加">
+                <span>📱</span>
+                <span class="hidden sm:inline">PWA</span>
+            </button>
+
             <!-- モード切替: フォーカスステージ vs フルスクリプト -->
             <button id="view-toggle-btn" class="glass-pill px-3 py-1.5 rounded-full text-xs font-mono-tech text-slate-300 hover:text-white flex items-center gap-1.5" title="表示モード切替">
                 <span id="view-icon">📑</span>
@@ -307,6 +335,12 @@
                     <!-- 背景光彩 -->
                     <div class="absolute -top-24 -right-24 w-52 h-52 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
+                    <!-- シャドーイングスコア・バッジ (評価時にフロート表示) -->
+                    <div id="shadowing-result-badge" class="absolute top-4 left-1/2 -translate-x-1/2 hidden px-3.5 py-1 rounded-full text-[11px] font-mono-tech border border-emerald-500/30 bg-emerald-950/60 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-2">
+                        <span id="shadowing-score-label">MATCH: 94%</span>
+                        <span class="text-xs">🎯 Excellent</span>
+                    </div>
+
                     <!-- センテンス本文 (単語スパン分割コンテナ) -->
                     <div class="min-h-[140px] flex items-center justify-center text-center">
                         <p id="stage-sentence-text" class="text-xl sm:text-2xl md:text-3xl font-medium tracking-tight leading-relaxed">
@@ -328,18 +362,45 @@
                 </div>
             </div>
 
-            <!-- 言語トレーニング・マイクロツール -->
-            <div class="flex items-center justify-center gap-3 pt-2">
-                <button id="read-slower-chip" class="glass-pill px-3.5 py-1.5 rounded-full text-[11px] font-mono-tech text-slate-400 hover:text-white flex items-center gap-1.5">
-                    <span>🐢</span><span>0.75x 精聴</span>
+            <!-- 画期的スマートツールデッキ (ブラインド / シャドーイング / 単語探索) -->
+            <div class="flex items-center justify-center flex-wrap gap-2.5 pt-1">
+                <!-- ブラインド（穴埋め）モード -->
+                <button id="toggle-blind-btn" class="glass-pill px-3.5 py-1.5 rounded-full text-[11px] font-mono-tech text-slate-300 hover:text-white flex items-center gap-1.5 transition" title="文字をぼかして耳だけに集中する">
+                    <span id="blind-icon">👁️</span>
+                    <span id="blind-label">ブラインド: OFF</span>
                 </button>
-                <button id="stage-copy-btn" class="glass-pill px-3.5 py-1.5 rounded-full text-[11px] font-mono-tech text-slate-400 hover:text-white flex items-center gap-1.5">
+
+                <!-- ゴースト・シャドーイングマイク -->
+                <button id="shadowing-mic-btn" class="glass-pill px-3.5 py-1.5 rounded-full text-[11px] font-mono-tech text-slate-300 hover:text-white flex items-center gap-1.5 transition" title="今聴いた英文をスマホに復唱して判定">
+                    <span id="mic-icon">🎙️</span>
+                    <span id="mic-label">シャドーイング採点</span>
+                </button>
+
+                <!-- 速度プリセット -->
+                <button id="read-slower-chip" class="glass-pill px-3 py-1.5 rounded-full text-[11px] font-mono-tech text-slate-400 hover:text-white flex items-center gap-1">
+                    <span>🐢</span><span>0.75x</span>
+                </button>
+
+                <button id="stage-copy-btn" class="glass-pill px-3 py-1.5 rounded-full text-[11px] font-mono-tech text-slate-400 hover:text-white flex items-center gap-1">
                     <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                    <span>文をコピー</span>
+                    <span>コピー</span>
                 </button>
-                <button id="stage-pwa-btn" class="glass-pill px-3.5 py-1.5 rounded-full text-[11px] font-mono-tech text-slate-400 hover:text-white flex items-center gap-1.5">
-                    <span>📱</span><span>ホーム追加</span>
-                </button>
+            </div>
+
+            <!-- 単語タップ即時ポップアップ辞書カード -->
+            <div id="word-quick-card" class="glass-chassis rounded-2xl p-4 hidden border border-cyan-500/30 shadow-[0_10px_30px_rgba(0,0,0,0.8)] animate-fade-in text-xs font-mono-tech space-y-1.5">
+                <div class="flex justify-between items-center text-slate-400">
+                    <span class="text-cyan-300 font-bold text-sm tracking-wide" id="lex-word">Word</span>
+                    <button id="close-word-card" class="hover:text-white text-sm">✕</button>
+                </div>
+                <div class="text-slate-300 text-[13px] pt-1" id="lex-definition">
+                    <!-- 意味が動的に生成されます -->
+                </div>
+                <div class="pt-2 flex gap-2">
+                    <button id="lex-pronounce-btn" class="px-2.5 py-1 rounded bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 text-[10px] flex items-center gap-1">
+                        🔊 単語だけ発音
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -542,6 +603,9 @@ Listen deeply, echo the resonance, and transform comprehension into instinct.`;
         let currentIndex = 0;
         let isPlaying = false;
         let isSingleRepeat = false;
+        let isBlindMode = false; // 穴埋めマスクモード
+        let isRecordingShadowing = false; // シャドーイング判定状態
+        let speechRecognition = null;
         let playToken = 0;
         let audioCache = {};
         let currentView = 'focus'; // 'focus' | 'list'
@@ -550,10 +614,179 @@ Listen deeply, echo the resonance, and transform comprehension into instinct.`;
         let sentenceStartTime = 0;
         let elapsedBeforeCurrent = 0;
         let wordSyncInterval = null; // 単語追尾タイマー
+        let animFrameId = null; // requestAnimationFrame追尾用
+
+        // 新機能用エレメント
+        const toggleBlindBtn = document.getElementById('toggle-blind-btn');
+        const blindIcon = document.getElementById('blind-icon');
+        const blindLabel = document.getElementById('blind-label');
+        const shadowingMicBtn = document.getElementById('shadowing-mic-btn');
+        const micIcon = document.getElementById('mic-icon');
+        const micLabel = document.getElementById('mic-label');
+        const shadowingResultBadge = document.getElementById('shadowing-result-badge');
+        const shadowingScoreLabel = document.getElementById('shadowing-score-label');
+        const wordQuickCard = document.getElementById('word-quick-card');
+        const lexWord = document.getElementById('lex-word');
+        const lexDefinition = document.getElementById('lex-definition');
+        const lexPronounceBtn = document.getElementById('lex-pronounce-btn');
+        const closeWordCard = document.getElementById('close-word-card');
 
         // 初期ロード
         englishInput.value = localStorage.getItem('listening_eng') || defaultEnglish;
         parseAndRender();
+
+        // ブラインド（文字マスキング）トグル
+        toggleBlindBtn.addEventListener('click', () => {
+            isBlindMode = !isBlindMode;
+            if (isBlindMode) {
+                toggleBlindBtn.classList.add('border-cyan-500/50', 'bg-cyan-500/20', 'text-cyan-200');
+                blindIcon.textContent = '🙈';
+                blindLabel.textContent = 'ブラインド: ON';
+                applyBlindMask();
+                showToast('ブラインドモード: 音声に集中してください');
+            } else {
+                toggleBlindBtn.classList.remove('border-cyan-500/50', 'bg-cyan-500/20', 'text-cyan-200');
+                blindIcon.textContent = '👁️';
+                blindLabel.textContent = 'ブラインド: OFF';
+                removeBlindMask();
+                showToast('ブラインド解除');
+            }
+        });
+
+        function applyBlindMask() {
+            if (!isBlindMode) return;
+            const words = stageSentenceText.querySelectorAll('.stage-word');
+            words.forEach((w, idx) => {
+                // 奇数番目や長めの単語をマスクして難易度を適度に調整
+                if (idx % 2 === 1 || w.textContent.length > 5) {
+                    w.classList.add('blinded');
+                    w.addEventListener('click', () => w.classList.toggle('revealed'), { once: true });
+                }
+            });
+        }
+
+        function removeBlindMask() {
+            const words = stageSentenceText.querySelectorAll('.stage-word');
+            words.forEach(w => w.classList.remove('blinded', 'revealed'));
+        }
+
+        // ゴースト・シャドーイング採点機能 (Web Speech Recognition)
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRec) {
+            speechRecognition = new SpeechRec();
+            speechRecognition.lang = 'en-US';
+            speechRecognition.interimResults = false;
+            speechRecognition.continuous = false;
+
+            speechRecognition.onresult = (event) => {
+                const spokenText = event.results[0][0].transcript.toLowerCase();
+                calculateShadowingScore(spokenText);
+            };
+
+            speechRecognition.onerror = () => {
+                stopShadowingRecognition();
+                showToast('音声を認識できませんでした');
+            };
+
+            speechRecognition.onend = () => {
+                stopShadowingRecognition();
+            };
+        }
+
+        shadowingMicBtn.addEventListener('click', () => {
+            if (!SpeechRec) {
+                showToast('このブラウザは音声認識に対応していません');
+                return;
+            }
+
+            if (isRecordingShadowing) {
+                speechRecognition.stop();
+                stopShadowingRecognition();
+            } else {
+                startShadowingRecognition();
+            }
+        });
+
+        function startShadowingRecognition() {
+            stopAudio();
+            isRecordingShadowing = true;
+            shadowingMicBtn.classList.add('border-rose-500', 'bg-rose-500/20', 'text-rose-200', 'animate-pulse');
+            micIcon.textContent = '🔴';
+            micLabel.textContent = '聴き取り中...';
+            showToast('英語でリピートしてください');
+
+            try {
+                speechRecognition.start();
+            } catch (e) {
+                stopShadowingRecognition();
+            }
+        }
+
+        function stopShadowingRecognition() {
+            isRecordingShadowing = false;
+            shadowingMicBtn.classList.remove('border-rose-500', 'bg-rose-500/20', 'text-rose-200', 'animate-pulse');
+            micIcon.textContent = '🎙️';
+            micLabel.textContent = 'シャドーイング採点';
+        }
+
+        // 発音・シャドーイング一致度スコアリング
+        function calculateShadowingScore(spoken) {
+            const target = sentences[currentIndex].toLowerCase().replace(/[^a-z0-9\s]/g, '');
+            const spokenClean = spoken.replace(/[^a-z0-9\s]/g, '');
+
+            const targetWords = target.split(/\s+/).filter(w => w.length > 0);
+            const spokenWords = spokenClean.split(/\s+/).filter(w => w.length > 0);
+
+            let matches = 0;
+            targetWords.forEach(w => {
+                if (spokenWords.includes(w)) matches++;
+            });
+
+            const score = Math.round((matches / Math.max(1, targetWords.length)) * 100);
+
+            // バッジ表示
+            shadowingResultBadge.classList.remove('hidden');
+            let evaluation = 'Good try!';
+            if (score >= 85) evaluation = '🌟 Perfect Fluency!';
+            else if (score >= 65) evaluation = '🎯 Great rhythm!';
+            else evaluation = '💡 Try once more';
+
+            shadowingScoreLabel.textContent = `SCORE: ${score}% (${spokenClean.slice(0, 24)}...)`;
+            shadowingResultBadge.innerHTML = `<span>${evaluation}</span><span class="font-bold text-white bg-black/40 px-2 py-0.5 rounded-full">${score}pt</span>`;
+
+            setTimeout(() => {
+                shadowingResultBadge.classList.add('hidden');
+            }, 5500);
+        }
+
+        // 単語タップ・クイック辞書インスペクター
+        closeWordCard.addEventListener('click', () => wordQuickCard.classList.add('hidden'));
+
+        let selectedWordForAudio = '';
+        lexPronounceBtn.addEventListener('click', () => {
+            if (selectedWordForAudio) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(selectedWordForAudio);
+                u.lang = 'en-US';
+                u.rate = 0.85;
+                window.speechSynthesis.speak(u);
+            }
+        });
+
+        function showWordInspector(cleanWord, original) {
+            selectedWordForAudio = cleanWord;
+            lexWord.textContent = `${cleanWord}  / ${original}`;
+            
+            // 簡易クイック辞書（一般的な頻出単語や語尾・文法推定）
+            let desc = `英語の単語: "${cleanWord}"`;
+            if (cleanWord.endsWith('ing')) desc += ' (動名詞 / 現在進行形)';
+            else if (cleanWord.endsWith('ed')) desc += ' (過去形 / 過去分詞)';
+            else if (cleanWord.endsWith('ly')) desc += ' (副詞: 状態・様態)';
+            else desc += ' (リスニング中のキーボキャブラリ)';
+
+            lexDefinition.textContent = desc;
+            wordQuickCard.classList.remove('hidden');
+        }
 
         // ビュー切替ロジック
         viewToggleBtn.addEventListener('click', () => {
@@ -576,8 +809,12 @@ Listen deeply, echo the resonance, and transform comprehension into instinct.`;
         // モーダル制御
         toggleEditorBtn.addEventListener('click', () => { editorModal.classList.remove('hidden'); });
         closeEditorBtn.addEventListener('click', () => { editorModal.classList.add('hidden'); });
-        stagePwaBtn.addEventListener('click', () => { installGuideModal.classList.remove('hidden'); });
-        closeGuideBtn.addEventListener('click', () => { installGuideModal.classList.add('hidden'); });
+        if (stagePwaBtn) {
+            stagePwaBtn.addEventListener('click', () => { installGuideModal.classList.remove('hidden'); });
+        }
+        if (closeGuideBtn) {
+            closeGuideBtn.addEventListener('click', () => { installGuideModal.classList.add('hidden'); });
+        }
 
         resetDefaultBtn.addEventListener('click', () => {
             englishInput.value = defaultEnglish;
@@ -812,8 +1049,20 @@ Listen deeply, echo the resonance, and transform comprehension into instinct.`;
                 span.className = 'stage-word';
                 span.dataset.wordIndex = wIdx;
                 span.textContent = w;
+
+                // 単語タップで即座にインスペクター表示
+                span.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const clean = w.replace(/[^a-zA-Z]/g, '');
+                    if (clean) showWordInspector(clean, w);
+                });
+
                 stageSentenceText.appendChild(span);
             });
+
+            if (isBlindMode) {
+                applyBlindMask();
+            }
         }
 
         // 単語ハイライト制御
@@ -846,44 +1095,76 @@ Listen deeply, echo the resonance, and transform comprehension into instinct.`;
                 clearInterval(wordSyncInterval);
                 wordSyncInterval = null;
             }
+            if (animFrameId) {
+                cancelAnimationFrame(animFrameId);
+                animFrameId = null;
+            }
         }
 
-        // 外部オーディオ再生時の単語ハイライト追尾エンジン
+        // 外部オーディオ再生時の高精度・単語ハイライト追尾エンジン
         function startAudioWordSync(targetDuration) {
             stopWordSync();
             const words = stageSentenceText.querySelectorAll('.stage-word');
             if (words.length === 0) return;
 
-            const startTime = Date.now();
-            const totalMs = (targetDuration || sentenceDurations[currentIndex] || 2.0) * 1000;
+            // 実際のオーディオデュレーションを取得（ミリ秒）
+            const totalMs = Math.max(0.5, targetDuration) * 1000;
 
-            // 各単語の文字長に応じて時間配分を算出
-            const lengths = Array.from(words).map(w => Math.max(2, w.textContent.replace(/[^a-zA-Z0-9]/g, '').length));
+            // TTS音声特有の先頭/末尾の無音ギャップ（リードイン/アウト）を考慮
+            const leadInMs = Math.min(180, totalMs * 0.08); // 開始前の微小無音
+            const speechTotalMs = Math.max(100, totalMs - leadInMs);
+
+            // 単語の音節・文字数に基づくウェイト計算
+            const lengths = Array.from(words).map(w => {
+                const clean = w.textContent.replace(/[^a-zA-Z0-9]/g, '');
+                return Math.max(2, clean.length);
+            });
             const totalLen = lengths.reduce((a, b) => a + b, 0);
 
-            // 単語ごとのミリ秒タイムスタンプ
-            let acc = 0;
+            // 単語ごとのミリ秒タイムスタンプ（区間）を算出
+            let acc = leadInMs;
             const checkpoints = lengths.map(len => {
                 const startMs = acc;
-                const dur = (len / totalLen) * totalMs;
+                const dur = (len / totalLen) * speechTotalMs;
                 acc += dur;
                 return { startMs, endMs: acc };
             });
 
-            wordSyncInterval = setInterval(() => {
+            // 視覚的ラグを相殺するための先行オフセット（120ms先読みで耳とジャストに合わせる）
+            const visualLeadOffsetMs = 120;
+
+            const checkFrame = () => {
                 if (!isPlaying) {
                     stopWordSync();
                     return;
                 }
-                const elapsed = (Date.now() - startTime);
-                let activeIdx = checkpoints.findIndex(cp => elapsed >= cp.startMs && elapsed < cp.endMs);
-                if (activeIdx === -1 && elapsed >= totalMs) {
-                    activeIdx = words.length - 1;
+
+                // audioPlayer.currentTime (秒) を最優先で使用し、オーディオハードウェアと完全同期
+                let currentAudioMs = 0;
+                if (audioPlayer && !audioPlayer.paused && audioPlayer.currentTime > 0) {
+                    currentAudioMs = audioPlayer.currentTime * 1000;
+                } else {
+                    currentAudioMs = Date.now() - sentenceStartTime;
                 }
+
+                const effectiveMs = currentAudioMs + visualLeadOffsetMs;
+
+                let activeIdx = checkpoints.findIndex(cp => effectiveMs >= cp.startMs && effectiveMs < cp.endMs);
+                
+                if (activeIdx === -1 && effectiveMs >= totalMs) {
+                    activeIdx = words.length - 1;
+                } else if (activeIdx === -1 && effectiveMs < leadInMs) {
+                    activeIdx = 0;
+                }
+
                 if (activeIdx !== -1) {
                     highlightWordIndex(activeIdx);
                 }
-            }, 40);
+
+                animFrameId = requestAnimationFrame(checkFrame);
+            };
+
+            animFrameId = requestAnimationFrame(checkFrame);
         }
 
         function scrollListToActive() {
@@ -996,12 +1277,12 @@ Listen deeply, echo the resonance, and transform comprehension into instinct.`;
                 audioPlayer.src = audioSrc;
                 audioPlayer.playbackRate = 1.0;
 
-                audioPlayer.onloadedmetadata = () => {
-                    if (isPlaying && currentToken === playToken) {
-                        const actualDur = audioPlayer.duration && !isNaN(audioPlayer.duration) ? audioPlayer.duration : sentenceDurations[currentIndex];
-                        startAudioWordSync(actualDur);
-                    }
+                const onReadyToPlay = () => {
+                    const actualDur = audioPlayer.duration && !isNaN(audioPlayer.duration) ? audioPlayer.duration : sentenceDurations[currentIndex];
+                    startAudioWordSync(actualDur);
                 };
+
+                audioPlayer.onloadedmetadata = onReadyToPlay;
 
                 audioPlayer.onended = () => {
                     if (!isPlaying || currentToken !== playToken) return;
@@ -1016,12 +1297,9 @@ Listen deeply, echo the resonance, and transform comprehension into instinct.`;
                 audioPlayer.play().then(() => {
                     startTimer();
                     statusChip.textContent = 'RESONATING';
-                    // metadataが既にロード済みの場合のフォールバック起動
-                    if (audioPlayer.duration && !isNaN(audioPlayer.duration)) {
-                        startAudioWordSync(audioPlayer.duration);
-                    } else {
-                        startAudioWordSync(sentenceDurations[currentIndex]);
-                    }
+                    // 再生開始トリガーと同時に追尾スタート（メタデータ取得遅延にも対応）
+                    const actualDur = audioPlayer.duration && !isNaN(audioPlayer.duration) ? audioPlayer.duration : sentenceDurations[currentIndex];
+                    startAudioWordSync(actualDur);
                 }).catch(() => {
                     playFallback(text, rate, currentToken);
                 });
@@ -1057,11 +1335,10 @@ Listen deeply, echo the resonance, and transform comprehension into instinct.`;
 
                 const words = text.trim().split(/\s+/).filter(w => w.length > 0);
 
-                // Web Speech API の単語バウンダリ検出
+                // Web Speech API の単語バウンダリ検出（先行反映）
                 utter.onboundary = (event) => {
                     if (token !== playToken) return;
                     if (event.name === 'word') {
-                        // charIndexから該当単語のインデックスを割り出し
                         const charPos = event.charIndex;
                         let count = 0;
                         let foundIdx = 0;

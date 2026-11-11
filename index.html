@@ -1,694 +1,1167 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>英語リスニング学習アプリ</title>
-    <meta name="theme-color" content="#2563eb">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Listening Study">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SONAR — Cinematic Audio Lab</title>
+    <meta name="theme-color" content="#030305">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SONAR">
 
-        .sentence-card {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .sentence-card.active {
-            background-color: #eff6ff; /* blue-50 */
-            border-color: #3b82f6; /* blue-500 */
-            box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.15);
-            transform: scale(1.01);
-        }
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
-        #subtitles-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        #subtitles-container::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 8px;
-        }
-        #subtitles-container::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 8px;
-        }
-        #subtitles-container::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
+    <style>
+        :root {
+            --accent-glow: #6366f1;
+            --accent-cyan: #22d3ee;
+            --accent-gold: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            background: #030305;
+            color: #e2e8f0;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .font-brand {
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.15em;
+        }
+
+        .font-mono-tech {
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* 空間オーロラ・アトモスフィア */
+        .ambient-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.35;
+            mix-blend-mode: screen;
+            transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .orb-1 {
+            width: 420px;
+            height: 420px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.7) 0%, transparent 70%);
+            top: 15%;
+            left: 50%;
+            transform: translate(-50%, -20%);
+            animation: pulse-slow 8s ease-in-out infinite alternate;
+        }
+
+        .orb-2 {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.5) 0%, transparent 70%);
+            bottom: 20%;
+            left: 15%;
+            animation: float-slow 12s ease-in-out infinite alternate;
+        }
+
+        .orb-3 {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.4) 0%, transparent 70%);
+            top: 40%;
+            right: 10%;
+            animation: float-rev 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-slow {
+            0% { transform: translate(-50%, -20%) scale(0.9); opacity: 0.25; }
+            100% { transform: translate(-50%, -10%) scale(1.15); opacity: 0.45; }
+        }
+
+        @keyframes float-slow {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, -40px); }
+        }
+
+        @keyframes float-rev {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-30px, 30px); }
+        }
+
+        /* 超ハイエンド・グラスモーフィズム */
+        .glass-chassis {
+            background: rgba(10, 11, 16, 0.65);
+            backdrop-filter: blur(32px) saturate(180%);
+            -webkit-backdrop-filter: blur(32px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 30px 60px -12px rgba(0, 0, 0, 0.85),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                inset 0 0 20px rgba(99, 102, 241, 0.03);
+        }
+
+        .glass-pill {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-pill:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.18);
+            transform: translateY(-1px);
+        }
+
+        /* 映画的タイポグラフィステージ */
+        .stage-card {
+            perspective: 1000px;
+            transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* 単語ごとのカラオケ風ハイライト */
+        .stage-word {
+            display: inline-block;
+            margin: 0 0.18em;
+            color: rgba(255, 255, 255, 0.32);
+            transition: color 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), text-shadow 0.18s ease;
+        }
+
+        .stage-word.passed {
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .stage-word.current {
+            color: #ffffff;
+            font-weight: 700;
+            transform: scale(1.08);
+            text-shadow: 0 0 20px rgba(99, 102, 241, 0.8), 0 0 35px rgba(34, 211, 238, 0.6);
+            background: linear-gradient(135deg, #a5b4fc 0%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* スクリプトドロワー内のアイテム */
+        .script-row {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            border-left: 2px solid transparent;
+        }
+
+        .script-row.active {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.02) 100%);
+            border-left-color: #818cf8;
+            box-shadow: inset 0 0 15px rgba(99, 102, 241, 0.1);
+        }
+
+        .script-row.active .row-text {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .script-row.active .row-num {
+            color: #818cf8;
+        }
+
+        /* カスタムシークバー */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 3px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 9999px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 14px rgba(255, 255, 255, 0.9), 0 0 5px rgba(99, 102, 241, 0.8);
+            cursor: pointer;
+            margin-top: -4.5px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.4);
+        }
+
+        /* リアル音響ウェーブバー */
+        .sonar-bar {
+            width: 2.5px;
+            background: linear-gradient(180deg, #818cf8 0%, #22d3ee 100%);
+            border-radius: 2px;
+            transition: height 0.15s ease;
+            height: 4px;
+        }
+
+        .is-playing .sonar-bar:nth-child(1) { animation: wave 0.8s ease-in-out infinite alternate; }
+        .is-playing .sonar-bar:nth-child(2) { animation: wave 1.1s ease-in-out 0.1s infinite alternate; }
+        .is-playing .sonar-bar:nth-child(3) { animation: wave 0.9s ease-in-out 0.25s infinite alternate; }
+        .is-playing .sonar-bar:nth-child(4) { animation: wave 1.2s ease-in-out 0.15s infinite alternate; }
+        .is-playing .sonar-bar:nth-child(5) { animation: wave 0.7s ease-in-out 0.3s infinite alternate; }
+
+        @keyframes wave {
+            0% { height: 4px; opacity: 0.3; }
+            100% { height: 20px; opacity: 1; }
+        }
+
+        /* スクロールバー装飾 */
+        ::-webkit-scrollbar {
+            width: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-blue-200">
-
-    <!-- ヘッダー -->
-    <header class="bg-blue-600 text-white shadow-md sticky top-0 z-20">
-        <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold text-white text-base">
-                    🎧
-                </div>
-                <h1 class="text-lg font-bold tracking-tight">Listening Study</h1>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button id="install-guide-btn" class="bg-white/10 hover:bg-white/20 active:bg-white/30 text-xs px-2.5 py-1.5 rounded-lg font-medium transition backdrop-blur-sm flex items-center space-x-1">
-                    <span>📱 ホーム追加</span>
-                </button>
-                <button id="toggle-input-btn" class="bg-white text-blue-600 hover:bg-blue-50 font-semibold text-xs px-3 py-1.5 rounded-lg transition shadow-sm">
-                    英文設定
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-xl mx-auto w-full p-4 space-y-4 flex-1">
-
-        <!-- ホーム画面追加の案内モーダル -->
-        <div id="install-modal" class="bg-blue-50 border border-blue-200 p-4 rounded-2xl text-xs text-blue-900 hidden space-y-2 shadow-sm animate-fade-in">
-            <div class="flex justify-between items-center font-bold text-sm">
-                <span class="flex items-center space-x-1">
-                    <span>💡</span>
-                    <span>ホーム画面への追加方法</span>
-                </span>
-                <button id="close-modal-btn" class="text-blue-400 hover:text-blue-700 w-6 h-6 flex items-center justify-center text-lg rounded-full">✕</button>
-            </div>
-            <p class="text-blue-800 leading-relaxed">アプリ感覚ですぐ起動できるようにスマホのホーム画面に追加できます。</p>
-            <ul class="list-disc pl-5 space-y-1 text-blue-800">
-                <li><strong>iPhone (Safari):</strong> 画面下の共有ボタン ➔ 「ホーム画面に追加」</li>
-                <li><strong>Android (Chrome):</strong> 画面右上のメニュー ➔ 「ホーム画面に追加」</li>
-            </ul>
-        </div>
-
-        <!-- 英文入力エリア -->
-        <section id="input-section" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 hidden transition-all duration-300">
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1">
-                    <span>✍️</span>
-                    <span>英文テキスト入力</span>
-                </h2>
-                <button id="paste-btn" class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs px-2.5 py-1.5 rounded-lg font-medium transition flex items-center space-x-1">
-                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    <span>貼り付け</span>
-                </button>
-            </div>
-            <div class="space-y-3">
-                <textarea id="english-input" rows="6" class="w-full p-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition leading-relaxed" placeholder="ここに英語のテキストを入力してください..."></textarea>
-                
-                <div class="flex space-x-2">
-                    <button id="save-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-sm flex items-center justify-center space-x-1">
-                        <span>保存してスクリプトを更新</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 字幕表示エリア -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col" style="height: calc(100vh - 290px); min-height: 380px;">
-            <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 flex justify-between items-center shrink-0">
-                <span class="flex items-center space-x-1.5">
-                    <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
-                    <span>スクリプト（タップで再生）</span>
-                </span>
-                <div class="flex items-center space-x-2">
-                    <span id="current-position-label" class="bg-slate-200/70 text-slate-600 font-mono px-2 py-0.5 rounded-full text-[11px]">0 / 0</span>
-                </div>
-            </div>
-            <div id="subtitles-container" class="p-3 space-y-2.5 overflow-y-auto flex-1 scroll-smooth">
-                <div class="text-center text-slate-400 py-12 text-sm">
-                    読み込み中...
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- 固定コントロール（画面下部） -->
-    <footer class="sticky bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-4 shadow-lg z-30">
-        <div class="max-w-xl mx-auto space-y-2.5">
-            
-            <!-- タイムカウンター & プログレスバー -->
-            <div class="space-y-1 px-1">
-                <div class="flex justify-between items-center text-[11px] font-mono text-slate-500">
-                    <span id="time-display" class="text-blue-600 font-semibold">00:00 / 00:00</span>
-                </div>
-                <input type="range" id="progress-bar" min="0" max="100" value="0" class="w-full accent-blue-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
-            </div>
-
-            <!-- メインコントローラー -->
-            <div class="flex items-center justify-around px-2 pt-1">
-                
-                <!-- 制御ボタン群 -->
-                <div class="flex items-center space-x-6">
-                    <!-- 前へ -->
-                    <button id="prev-btn" class="p-2.5 text-slate-600 hover:text-blue-600 active:scale-95 transition flex flex-col items-center" title="前の文へ">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
-                        <span class="text-[10px] text-slate-400 mt-0.5">前へ</span>
-                    </button>
-
-                    <!-- 再生 / 一時停止 -->
-                    <button id="play-pause-btn" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-4 rounded-full shadow-md hover:shadow-lg transition flex items-center justify-center transform active:scale-95 focus:outline-none" title="再生 / 一時停止">
-                        <svg id="play-icon" class="w-6 h-6 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <svg id="pause-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </button>
-
-                    <!-- 次へ -->
-                    <button id="next-btn" class="p-2.5 text-slate-600 hover:text-blue-600 active:scale-95 transition flex flex-col items-center" title="次の文へ">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
-                        <span class="text-[10px] text-slate-400 mt-0.5">次へ</span>
-                    </button>
-                </div>
-
-                <!-- 音声選択 & 再生速度 -->
-                <div class="flex items-center space-x-2">
-                    <div class="flex flex-col items-center">
-                        <select id="rate-select" class="bg-slate-100 border border-slate-200 rounded-lg text-xs p-1.5 font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                            <option value="0.5">0.5x</option>
-                            <option value="0.75">0.75x</option>
-                            <option value="1" selected>1.0x</option>
-                            <option value="1.25">1.25x</option>
-                            <option value="1.5">1.5x</option>
-                            <option value="2">2.0x</option>
-                        </select>
-                        <span class="text-[10px] text-slate-400 mt-0.5">再生速度</span>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </footer>
-
-    <!-- バックグラウンド維持および音声再生用のメインオーディオ要素 -->
-    <audio id="bg-audio" playsinline style="display:none;"></audio>
-
-    <script>
-        const API_BASE_URL = 'https://onnsei-80988359742.asia-northeast1.run.app';
-
-        const defaultEnglish = `Hello and welcome to this English listening practice session.
-Regular input is the key to improving your listening skills.
-Try to follow the subtitles as you listen to each sentence.
-You can adjust the playback speed, repeat sentences, and review comfortably.
-Let's make this a daily habit for better fluency!`;
-
-        // DOM要素の参照
-        const englishInput = document.getElementById('english-input');
-        const saveBtn = document.getElementById('save-btn');
-        const pasteBtn = document.getElementById('paste-btn');
-        const inputSection = document.getElementById('input-section');
-        const toggleInputBtn = document.getElementById('toggle-input-btn');
-        const installGuideBtn = document.getElementById('install-guide-btn');
-        const installModal = document.getElementById('install-modal');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const subtitlesContainer = document.getElementById('subtitles-container');
-        
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const playIcon = document.getElementById('play-icon');
-        const pauseIcon = document.getElementById('pause-icon');
-
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const rateSelect = document.getElementById('rate-select');
-        const progressBar = document.getElementById('progress-bar');
-        const currentPositionLabel = document.getElementById('current-position-label');
-        const timeDisplay = document.getElementById('time-display');
-
-        const audioPlayer = document.getElementById('bg-audio');
-
-        // 状態変数
-        let sentences = [];
-        let sentenceDurations = []; // 各文の推定秒数
-        let cumulativeDurations = []; // 累積時間
-        let totalEstimatedTime = 0; // 全体の推定秒数
-
-        let currentIndex = 0;
-        let isPlaying = false;
-        let audioCache = {}; // 取得した音声のキャッシュ
-
-        // タイマー・時間計測用
-        let timerInterval = null;
-        let sentenceStartTime = 0;
-        let elapsedBeforeCurrent = 0;
-
-        // 初期化処理
-        englishInput.value = localStorage.getItem('listening_eng') || defaultEnglish;
-        parseAndRender();
-
-        // イベントリスナー設定
-        installGuideBtn.addEventListener('click', () => { installModal.classList.toggle('hidden'); });
-        closeModalBtn.addEventListener('click', () => { installModal.classList.add('hidden'); });
-        toggleInputBtn.addEventListener('click', () => {
-            inputSection.classList.toggle('hidden');
-            installModal.classList.add('hidden');
-        });
-
-        pasteBtn.addEventListener('click', async () => {
-            try {
-                if (navigator.clipboard && navigator.clipboard.readText) {
-                    const text = await navigator.clipboard.readText();
-                    if (text) { 
-                        englishInput.value = text; 
-                    } else { 
-                        showNotice('クリップボードにテキストがありません'); 
-                    }
-                } else {
-                    showNotice('手動でテキストエリアにペーストしてください');
-                }
-            } catch (err) {
-                showNotice('クリップボードの読み取り権限がありません');
-            }
-        });
-
-        saveBtn.addEventListener('click', () => {
-            localStorage.setItem('listening_eng', englishInput.value);
-            audioCache = {}; // キャッシュのクリア
-            parseAndRender();
-            inputSection.classList.add('hidden');
-            stopAudio();
-        });
-
-        function showNotice(msg) {
-            const toast = document.createElement('div');
-            toast.className = 'fixed top-16 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-4 py-2 rounded-full shadow-lg z-50 transition-opacity duration-300';
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 2000);
-        }
-
-        // 秒数を mm:ss フォーマットに変換する関数
-        function formatTime(seconds) {
-            const sec = Math.max(0, Math.floor(seconds));
-            const m = Math.floor(sec / 60);
-            const s = sec % 60;
-            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-        }
-
-        function calculateDurations() {
-            const rate = parseFloat(rateSelect.value) || 1.0;
-            sentenceDurations = [];
-            cumulativeDurations = [0];
-            totalEstimatedTime = 0;
-
-            sentences.forEach(s => {
-                const words = s.trim().split(/\s+/).filter(w => w.length > 0).length;
-                const duration = Math.max(1.2, (words / 2.3)) / rate;
-                
-                sentenceDurations.push(duration);
-                totalEstimatedTime += duration;
-                cumulativeDurations.push(totalEstimatedTime);
-            });
-
-            updateTimerDisplay();
-        }
-
-        function parseAndRender() {
-            const engText = englishInput.value.trim();
-            
-            sentences = engText ? engText.match(/[^.!?\n]+[.!?\n]*/g) || [engText] : [];
-            sentences = sentences.map(s => s.trim()).filter(s => s.length > 0);
-
-            subtitlesContainer.innerHTML = '';
-            
-            if (sentences.length === 0) {
-                subtitlesContainer.innerHTML = '<div class="text-center text-slate-400 py-12 text-sm">英文が登録されていません。<br>「英文設定」から登録してください。</div>';
-                currentPositionLabel.textContent = '0 / 0';
-                timeDisplay.textContent = '00:00 / 00:00';
-                return;
-            }
-
-            calculateDurations();
-
-            sentences.forEach((sent, idx) => {
-                const div = document.createElement('div');
-                div.className = `p-3.5 rounded-xl border border-slate-100 bg-white transition-all duration-200 cursor-pointer hover:border-slate-300 sentence-card ${idx === 0 ? 'active' : ''}`;
-                div.dataset.index = idx;
-
-                const flexDiv = document.createElement('div');
-                flexDiv.className = 'flex items-start space-x-3';
-
-                const numSpan = document.createElement('span');
-                numSpan.className = 'text-xs font-semibold text-slate-300 font-mono mt-0.5 select-none w-5 shrink-0 text-right';
-                numSpan.textContent = `${idx + 1}`;
-
-                const engP = document.createElement('p');
-                engP.className = 'text-sm sm:text-base font-medium text-slate-800 leading-relaxed break-words flex-1';
-                engP.textContent = sent;
-
-                flexDiv.appendChild(numSpan);
-                flexDiv.appendChild(engP);
-                div.appendChild(flexDiv);
-
-                div.addEventListener('click', () => {
-                    currentIndex = idx;
-                    playSentence(currentIndex);
-                });
-
-                subtitlesContainer.appendChild(div);
-            });
-
-            currentPositionLabel.textContent = `1 / ${sentences.length}`;
-            updateProgress();
-            updateTimerDisplay();
-
-            // スクリプト読み込み時に先頭2文をバックグラウンドでプリロードしておく
-            preloadAhead(0);
-        }
-
-        function startTimer() {
-            stopTimer();
-            sentenceStartTime = Date.now();
-            elapsedBeforeCurrent = cumulativeDurations[currentIndex] || 0;
-
-            timerInterval = setInterval(() => {
-                if (!isPlaying) return;
-                const currentSentenceElapsed = (Date.now() - sentenceStartTime) / 1000;
-                const currentTotalElapsed = Math.min(totalEstimatedTime, elapsedBeforeCurrent + currentSentenceElapsed);
-                timeDisplay.textContent = `${formatTime(currentTotalElapsed)} / ${formatTime(totalEstimatedTime)}`;
-            }, 200);
-        }
-
-        function stopTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-        }
-
-        function updateTimerDisplay() {
-            const currentTotalElapsed = cumulativeDurations[currentIndex] || 0;
-            timeDisplay.textContent = `${formatTime(currentTotalElapsed)} / ${formatTime(totalEstimatedTime)}`;
-        }
-
-        // 次の文の音声をバックグラウンドで事前取得（プリロード）する関数
-        function preloadAhead(fromIndex) {
-            const currentRate = parseFloat(rateSelect.value);
-            [fromIndex, fromIndex + 1, fromIndex + 2].forEach(idx => {
-                if (idx >= 0 && idx < sentences.length) {
-                    fetchExternalAudio(sentences[idx], currentRate);
-                }
-            });
-        }
-
-        async function fetchExternalAudio(text, rate) {
-            const cacheKey = `${text}_${rate}`;
-
-            if (audioCache[cacheKey]) {
-                return audioCache[cacheKey];
-            }
-
-            try {
-                const params = new URLSearchParams({
-                    text: text,
-                    rate: rate,
-                    speed: rate,
-                    lang: 'en-US'
-                });
-
-                const queryUrl = `${API_BASE_URL}/?${params.toString()}`;
-                const response = await fetch(queryUrl, {
-                    method: 'GET',
-                    headers: { 'Accept': 'audio/mpeg, audio/wav, audio/*, application/json' }
-                });
-
-                if (!response.ok) {
-                    const postResponse = await fetch(`${API_BASE_URL}/`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text, rate, speed: rate, lang: 'en-US' })
-                    });
-                    
-                    if (!postResponse.ok) throw new Error('API Response not ok');
-                    
-                    const contentType = postResponse.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        const json = await postResponse.json();
-                        const audioUrl = json.url || json.audioUrl || json.audio || json.file;
-                        if (audioUrl) {
-                            audioCache[cacheKey] = audioUrl;
-                            return audioUrl;
-                        }
-                    } else {
-                        const blob = await postResponse.blob();
-                        const blobUrl = URL.createObjectURL(blob);
-                        audioCache[cacheKey] = blobUrl;
-                        return blobUrl;
-                    }
-                }
-
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    const json = await response.json();
-                    const audioUrl = json.url || json.audioUrl || json.audio || json.file;
-                    if (audioUrl) {
-                        audioCache[cacheKey] = audioUrl;
-                        return audioUrl;
-                    }
-                }
-
-                const blob = await response.blob();
-                const blobUrl = URL.createObjectURL(blob);
-                audioCache[cacheKey] = blobUrl;
-                return blobUrl;
-
-            } catch (err) {
-                console.warn('External TTS API unavailable, fallback to Web Speech API:', err);
-                return null;
-            }
-        }
-
-        async function playSentence(index) {
-            if (index < 0 || index >= sentences.length) {
-                stopAudio();
-                return;
-            }
-
-            stopAudio();
-
-            currentIndex = index;
-            updateHighlight();
-            isPlaying = true;
-            updatePlayButtonState();
-
-            // 現在再生を開始した直後に、次の2文をバックグラウンドで先読み開始
-            preloadAhead(currentIndex + 1);
-
-            const textToSpeak = sentences[currentIndex];
-            const currentRate = parseFloat(rateSelect.value);
-
-            const audioSrc = await fetchExternalAudio(textToSpeak, currentRate);
-
-            if (audioSrc && isPlaying) {
-                audioPlayer.src = audioSrc;
-                audioPlayer.playbackRate = 1.0;
-                
-                audioPlayer.onended = () => {
-                    if (!isPlaying) return;
-                    if (currentIndex < sentences.length - 1) {
-                        playSentence(currentIndex + 1);
-                    } else {
-                        stopAudio();
-                        timeDisplay.textContent = `${formatTime(totalEstimatedTime)} / ${formatTime(totalEstimatedTime)}`;
-                    }
-                };
-
-                audioPlayer.onerror = () => {
-                    playWithWebSpeech(textToSpeak, currentRate);
-                };
-
-                audioPlayer.play().then(() => {
-                    startTimer();
-                    updateMediaSession(textToSpeak);
-                }).catch(() => {
-                    playWithWebSpeech(textToSpeak, currentRate);
-                });
-
-            } else if (isPlaying) {
-                playWithWebSpeech(textToSpeak, currentRate);
-            }
-        }
-
-        function playWithWebSpeech(textToSpeak, rate) {
-            window.speechSynthesis.cancel();
-
-            setTimeout(() => {
-                if (!isPlaying) return;
-
-                const currentUtterance = new SpeechSynthesisUtterance(textToSpeak);
-                currentUtterance.lang = 'en-US';
-                currentUtterance.rate = rate;
-
-                currentUtterance.onstart = () => {
-                    startTimer();
-                };
-
-                currentUtterance.onend = () => {
-                    if (!isPlaying) return;
-                    if (currentIndex < sentences.length - 1) {
-                        playSentence(currentIndex + 1);
-                    } else {
-                        stopAudio();
-                        timeDisplay.textContent = `${formatTime(totalEstimatedTime)} / ${formatTime(totalEstimatedTime)}`;
-                    }
-                };
-
-                currentUtterance.onerror = () => {
-                    stopAudio();
-                };
-
-                window.speechSynthesis.speak(currentUtterance);
-                updateMediaSession(textToSpeak);
-            }, 50);
-        }
-
-        function updateMediaSession(text) {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: `文 ${currentIndex + 1} / ${sentences.length}`,
-                    artist: 'Listening Study',
-                    album: text,
-                });
-
-                navigator.mediaSession.setActionHandler('play', () => {
-                    if (!isPlaying) playSentence(currentIndex);
-                });
-                navigator.mediaSession.setActionHandler('pause', () => {
-                    stopAudio();
-                });
-                navigator.mediaSession.setActionHandler('previoustrack', () => {
-                    if (currentIndex > 0) playSentence(currentIndex - 1);
-                });
-                navigator.mediaSession.setActionHandler('nexttrack', () => {
-                    if (currentIndex < sentences.length - 1) playSentence(currentIndex + 1);
-                });
-            }
-        }
-
-        function scrollContainerToActiveItem(activeItem) {
-            if (!activeItem || !subtitlesContainer) return;
-
-            const containerHeight = subtitlesContainer.clientHeight;
-            const itemTop = activeItem.offsetTop - subtitlesContainer.offsetTop;
-            const itemHeight = activeItem.clientHeight;
-
-            const targetScrollTop = itemTop - (containerHeight / 2) + (itemHeight / 2);
-
-            subtitlesContainer.scrollTo({
-                top: Math.max(0, targetScrollTop),
-                behavior: 'smooth'
-            });
-        }
-
-        function updateHighlight() {
-            const items = subtitlesContainer.querySelectorAll('.sentence-card');
-            let activeElement = null;
-
-            items.forEach((item, idx) => {
-                if (idx === currentIndex) {
-                    item.classList.add('active');
-                    activeElement = item;
-                } else {
-                    item.classList.remove('active');
-                }
-            });
-
-            if (activeElement) {
-                scrollContainerToActiveItem(activeElement);
-            }
-
-            currentPositionLabel.textContent = `${currentIndex + 1} / ${sentences.length}`;
-            updateProgress();
-            updateTimerDisplay();
-        }
-
-        function updateProgress() {
-            if (sentences.length === 0) {
-                progressBar.value = 0;
-                return;
-            }
-            const progress = (currentIndex / Math.max(1, sentences.length - 1)) * 100;
-            progressBar.value = isNaN(progress) ? 0 : progress;
-        }
-
-        function stopAudio() {
-            window.speechSynthesis.cancel();
-            audioPlayer.pause();
-            audioPlayer.currentTime = 0;
-            isPlaying = false;
-            stopTimer();
-            updatePlayButtonState();
-        }
-
-        function updatePlayButtonState() {
-            if (isPlaying) {
-                playIcon.classList.add('hidden');
-                pauseIcon.classList.remove('hidden');
-            } else {
-                playIcon.classList.remove('hidden');
-                pauseIcon.classList.add('hidden');
-            }
-        }
-
-        // ボタンイベント
-        playPauseBtn.addEventListener('click', () => {
-            if (sentences.length === 0) return;
-
-            if (isPlaying) {
-                stopAudio();
-            } else {
-                playSentence(currentIndex);
-            }
-        });
-
-        prevBtn.addEventListener('click', () => {
-            if (currentIndex > 0) {
-                currentIndex--;
-                if (isPlaying) {
-                    playSentence(currentIndex);
-                } else {
-                    updateHighlight();
-                }
-            }
-        });
-
-        nextBtn.addEventListener('click', () => {
-            if (currentIndex < sentences.length - 1) {
-                currentIndex++;
-                if (isPlaying) {
-                    playSentence(currentIndex);
-                } else {
-                    updateHighlight();
-                }
-            }
-        });
-
-        progressBar.addEventListener('input', (e) => {
-            if (sentences.length === 0) return;
-            const val = e.target.value;
-            const newIndex = Math.round((val / 100) * (sentences.length - 1));
-            currentIndex = newIndex;
-            if (isPlaying) {
-                playSentence(currentIndex);
-            } else {
-                updateHighlight();
-            }
-        });
-
-        rateSelect.addEventListener('change', () => {
-            audioCache = {}; // 速度変更時はキャッシュをクリア
-            calculateDurations();
-            if (isPlaying) {
-                playSentence(currentIndex);
-            } else {
-                updateTimerDisplay();
-            }
-        });
-    </script>
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-indigo-500/40">
+
+    <!-- アンビエントオーラ背景 -->
+    <div class="ambient-canvas">
+        <div class="orb orb-1" id="orb-core"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <!-- グリッドテクスチャ -->
+        <div class="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
+    </div>
+
+    <!-- 最上部ミニマルバー -->
+    <header class="relative z-30 px-6 py-4 flex justify-between items-center border-b border-white/[0.04]">
+        <div class="flex items-center space-x-3">
+            <div class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee] animate-pulse"></div>
+            <span class="font-brand text-xs font-bold tracking-[0.25em] text-white">S O N A R</span>
+            <span class="font-mono-tech text-[9px] px-1.5 py-0.5 rounded border border-white/10 text-slate-400 bg-white/[0.02]">V.4</span>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <!-- モード切替: フォーカスステージ vs フルスクリプト -->
+            <button id="view-toggle-btn" class="glass-pill px-3 py-1.5 rounded-full text-xs font-mono-tech text-slate-300 hover:text-white flex items-center gap-1.5" title="表示モード切替">
+                <span id="view-icon">📑</span>
+                <span id="view-text">一覧表示</span>
+            </button>
+
+            <!-- 英文編集 -->
+            <button id="toggle-editor-btn" class="glass-pill px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white flex items-center gap-1" title="英文編集">
+                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                <span>設定</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- メインステージエリア -->
+    <main class="relative z-10 flex-1 max-w-2xl mx-auto w-full px-4 py-6 flex flex-col justify-center">
+
+        <!-- ビュー1: シネマティック・フォーカスステージ (デフォルト) -->
+        <div id="focus-stage" class="w-full space-y-8 py-4 transition-all duration-500">
+            
+            <!-- 上部ステータスメーター -->
+            <div class="flex items-center justify-between px-2">
+                <div class="flex items-center space-x-3">
+                    <!-- オーディオアナライザー -->
+                    <div id="sonar-wave" class="flex items-end gap-1 h-5 px-2 py-0.5 rounded-lg bg-black/40 border border-white/5">
+                        <div class="sonar-bar"></div>
+                        <div class="sonar-bar"></div>
+                        <div class="sonar-bar"></div>
+                        <div class="sonar-bar"></div>
+                        <div class="sonar-bar"></div>
+                    </div>
+                    <span id="status-chip" class="font-mono-tech text-[10px] text-slate-400 tracking-wider uppercase">STANDBY</span>
+                </div>
+
+                <div class="font-mono-tech text-xs tracking-widest text-slate-400 flex items-center gap-1.5">
+                    <span class="text-indigo-400 font-bold text-sm" id="stage-index-current">01</span>
+                    <span class="opacity-40">/</span>
+                    <span id="stage-index-total">00</span>
+                </div>
+            </div>
+
+            <!-- メインセンテンス・カード -->
+            <div class="stage-card relative group">
+                <div class="glass-chassis rounded-3xl p-8 sm:p-12 relative overflow-hidden">
+                    <!-- 背景光彩 -->
+                    <div class="absolute -top-24 -right-24 w-52 h-52 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <!-- センテンス本文 (単語スパン分割コンテナ) -->
+                    <div class="min-h-[140px] flex items-center justify-center text-center">
+                        <p id="stage-sentence-text" class="text-xl sm:text-2xl md:text-3xl font-medium tracking-tight leading-relaxed">
+                            <!-- 単語が動的にスパン展開されます -->
+                        </p>
+                    </div>
+
+                    <!-- 前後センテンスの微かなゴーストガイド (タップで移動可能) -->
+                    <div class="mt-8 pt-6 border-t border-white/[0.06] flex justify-between items-center text-xs font-mono-tech text-slate-500">
+                        <button id="ghost-prev-btn" class="hover:text-indigo-300 transition truncate max-w-[45%] text-left flex items-center gap-1">
+                            <span class="text-[10px]">←</span>
+                            <span id="ghost-prev-text" class="truncate">Previous line</span>
+                        </button>
+                        <button id="ghost-next-btn" class="hover:text-indigo-300 transition truncate max-w-[45%] text-right flex items-center gap-1 ml-auto">
+                            <span id="ghost-next-text" class="truncate">Next line</span>
+                            <span class="text-[10px]">→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 言語トレーニング・マイクロツール -->
+            <div class="flex items-center justify-center gap-3 pt-2">
+                <button id="read-slower-chip" class="glass-pill px-3.5 py-1.5 rounded-full text-[11px] font-mono-tech text-slate-400 hover:text-white flex items-center gap-1.5">
+                    <span>🐢</span><span>0.75x 精聴</span>
+                </button>
+                <button id="stage-copy-btn" class="glass-pill px-3.5 py-1.5 rounded-full text-[11px] font-mono-tech text-slate-400 hover:text-white flex items-center gap-1.5">
+                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    <span>文をコピー</span>
+                </button>
+                <button id="stage-pwa-btn" class="glass-pill px-3.5 py-1.5 rounded-full text-[11px] font-mono-tech text-slate-400 hover:text-white flex items-center gap-1.5">
+                    <span>📱</span><span>ホーム追加</span>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- ビュー2: フローティング・スクリプト一覧 (非表示切替) -->
+        <div id="list-stage" class="w-full hidden transition-all duration-500">
+            <div class="glass-chassis rounded-3xl p-4 overflow-hidden flex flex-col" style="height: calc(100vh - 290px); min-height: 400px;">
+                <div class="px-4 py-3 border-b border-white/[0.06] flex justify-between items-center text-xs font-mono-tech text-slate-400">
+                    <span>SCRIPT ROLL</span>
+                    <span id="script-count">0 items</span>
+                </div>
+                <div id="script-container" class="p-2 space-y-2 overflow-y-auto flex-1">
+                    <!-- リストアイテムが動的挿入 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 英文テキスト編集モーダル -->
+        <div id="editor-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 hidden">
+            <div class="glass-chassis w-full max-w-lg rounded-3xl p-6 space-y-4 border border-white/10 shadow-2xl animate-fade-in">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        <h3 class="font-mono-tech text-xs tracking-wider uppercase text-white font-bold">Script Customizer</h3>
+                    </div>
+                    <button id="close-editor-btn" class="text-slate-400 hover:text-white text-base w-7 h-7 rounded-full flex items-center justify-center">✕</button>
+                </div>
+
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-400">英語テキストを入力 / 貼り付け</span>
+                    <div class="flex gap-2">
+                        <button id="reset-default-btn" class="text-indigo-400 hover:underline">初期英文</button>
+                        <span class="text-slate-600">|</span>
+                        <button id="paste-btn" class="text-cyan-400 hover:underline">クリップボード貼付</button>
+                    </div>
+                </div>
+
+                <textarea id="english-input" rows="8" class="w-full p-4 rounded-2xl bg-black/50 border border-white/10 text-sm font-normal text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition leading-relaxed resize-none"></textarea>
+
+                <button id="save-script-btn" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:opacity-90 text-white font-mono-tech text-xs tracking-wider uppercase font-bold shadow-lg shadow-indigo-500/20 active:scale-[0.99] transition">
+                    Apply & Synthesize
+                </button>
+            </div>
+        </div>
+
+        <!-- PWA ホーム追加ガイド モーダル -->
+        <div id="install-guide-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 hidden">
+            <div class="glass-chassis w-full max-w-md rounded-3xl p-6 space-y-4 border border-cyan-500/30 shadow-2xl">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                        <h3 class="font-mono-tech text-xs tracking-wider uppercase text-white font-bold">Install as Web App</h3>
+                    </div>
+                    <button id="close-guide-btn" class="text-slate-400 hover:text-white text-base">✕</button>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    アドレスバーのないフルスクリーン＆オフライン感覚で利用するには、ブラウザの共有メニューからホーム画面に追加してください。
+                </p>
+                <div class="space-y-2 text-xs font-mono-tech">
+                    <div class="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-slate-300">
+                        <span class="text-cyan-400 font-bold">iOS (Safari):</span> 画面下部の [共有] アイコン ➔ [ホーム画面に追加]
+                    </div>
+                    <div class="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-slate-300">
+                        <span class="text-indigo-400 font-bold">Android (Chrome):</span> 右上の [︙] ➔ [ホーム画面に追加]
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- リデザインされた未来派フロートドック (操作デッキ) -->
+    <footer class="relative z-30 pb-6 px-4">
+        <div class="max-w-xl mx-auto glass-chassis rounded-3xl p-4 sm:p-5 shadow-2xl border border-white/[0.09]">
+            
+            <!-- プログレスバー & タイムカウンター -->
+            <div class="space-y-1.5 px-2 mb-3">
+                <div class="flex justify-between items-center font-mono-tech text-[10px] tracking-wider text-slate-400">
+                    <span id="time-current" class="text-indigo-400 font-bold">00:00</span>
+                    <div class="flex items-center gap-2">
+                        <span id="rate-badge" class="px-1.5 py-0.5 rounded bg-white/[0.06] text-slate-300">1.0x</span>
+                        <span id="time-total" class="text-slate-500">/ 00:00</span>
+                    </div>
+                </div>
+                <input type="range" id="progress-bar" min="0" max="100" value="0" class="w-full cursor-pointer">
+            </div>
+
+            <!-- コントロールボタン群 -->
+            <div class="flex items-center justify-between px-2">
+                
+                <!-- リピートモード切り替え -->
+                <button id="repeat-btn" class="w-10 h-10 rounded-2xl glass-pill flex items-center justify-center text-slate-400 hover:text-white transition" title="1文リピート">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </button>
+
+                <!-- メイン再生ナビゲーション -->
+                <div class="flex items-center space-x-4">
+                    <!-- 前へ -->
+                    <button id="prev-btn" class="w-11 h-11 rounded-2xl glass-pill flex items-center justify-center text-slate-300 hover:text-white active:scale-95 transition" title="Previous Sentence">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+
+                    <!-- 再生 / 一時停止 (メインオーブ) -->
+                    <button id="play-pause-btn" class="relative group w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 p-[1.5px] shadow-[0_0_30px_rgba(99,102,241,0.5)] active:scale-95 transition-all focus:outline-none">
+                        <div class="w-full h-full bg-[#0a0c14] rounded-full flex items-center justify-center group-hover:bg-opacity-80 transition">
+                            <svg id="play-icon" class="w-6 h-6 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="pause-icon" class="w-6 h-6 text-white hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </div>
+                    </button>
+
+                    <!-- 次へ -->
+                    <button id="next-btn" class="w-11 h-11 rounded-2xl glass-pill flex items-center justify-center text-slate-300 hover:text-white active:scale-95 transition" title="Next Sentence">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+
+                <!-- 速度選択 -->
+                <div class="relative">
+                    <select id="rate-select" class="glass-pill rounded-2xl text-xs py-2.5 px-3 font-mono-tech text-slate-200 bg-transparent focus:outline-none cursor-pointer">
+                        <option value="0.5" class="bg-[#0b0d14] text-slate-200">0.5×</option>
+                        <option value="0.75" class="bg-[#0b0d14] text-slate-200">0.75×</option>
+                        <option value="1" selected class="bg-[#0b0d14] text-slate-200">1.0×</option>
+                        <option value="1.25" class="bg-[#0b0d14] text-slate-200">1.25×</option>
+                        <option value="1.5" class="bg-[#0b0d14] text-slate-200">1.5×</option>
+                        <option value="2" class="bg-[#0b0d14] text-slate-200">2.0×</option>
+                    </select>
+                </div>
+
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- バックグラウンド再生用オーディオ -->
+    <audio id="bg-audio" playsinline style="display:none;"></audio>
+
+    <script>
+        const API_BASE_URL = 'https://onnsei-80988359742.asia-northeast1.run.app';
+
+        const defaultEnglish = `Welcome to the high-fidelity sound chamber.
+Language fluency is built through precise rhythmic immersion.
+Every accent, pause, and tone carries unspoken clarity.
+Loop challenging phrases until the cadence becomes second nature.
+Listen deeply, echo the resonance, and transform comprehension into instinct.`;
+
+        // UI DOM要素
+        const stageSentenceText = document.getElementById('stage-sentence-text');
+        const stageIndexCurrent = document.getElementById('stage-index-current');
+        const stageIndexTotal = document.getElementById('stage-index-total');
+        const ghostPrevBtn = document.getElementById('ghost-prev-btn');
+        const ghostNextBtn = document.getElementById('ghost-next-btn');
+        const ghostPrevText = document.getElementById('ghost-prev-text');
+        const ghostNextText = document.getElementById('ghost-next-text');
+
+        const focusStage = document.getElementById('focus-stage');
+        const listStage = document.getElementById('list-stage');
+        const scriptContainer = document.getElementById('script-container');
+        const scriptCount = document.getElementById('script-count');
+        const viewToggleBtn = document.getElementById('view-toggle-btn');
+        const viewIcon = document.getElementById('view-icon');
+        const viewText = document.getElementById('view-text');
+
+        const editorModal = document.getElementById('editor-modal');
+        const englishInput = document.getElementById('english-input');
+        const toggleEditorBtn = document.getElementById('toggle-editor-btn');
+        const closeEditorBtn = document.getElementById('close-editor-btn');
+        const saveScriptBtn = document.getElementById('save-script-btn');
+        const resetDefaultBtn = document.getElementById('reset-default-btn');
+        const pasteBtn = document.getElementById('paste-btn');
+
+        const installGuideModal = document.getElementById('install-guide-modal');
+        const stagePwaBtn = document.getElementById('stage-pwa-btn');
+        const closeGuideBtn = document.getElementById('close-guide-btn');
+
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const repeatBtn = document.getElementById('repeat-btn');
+        const rateSelect = document.getElementById('rate-select');
+        const rateBadge = document.getElementById('rate-badge');
+        const progressBar = document.getElementById('progress-bar');
+        const timeCurrent = document.getElementById('time-current');
+        const timeTotal = document.getElementById('time-total');
+        const statusChip = document.getElementById('status-chip');
+        const sonarWave = document.getElementById('sonar-wave');
+        const orbCore = document.getElementById('orb-core');
+        const stageCopyBtn = document.getElementById('stage-copy-btn');
+        const readSlowerChip = document.getElementById('read-slower-chip');
+
+        const audioPlayer = document.getElementById('bg-audio');
+
+        // State
+        let sentences = [];
+        let sentenceDurations = [];
+        let cumulativeDurations = [];
+        let totalEstimatedTime = 0;
+
+        let currentIndex = 0;
+        let isPlaying = false;
+        let isSingleRepeat = false;
+        let playToken = 0;
+        let audioCache = {};
+        let currentView = 'focus'; // 'focus' | 'list'
+
+        let timerInterval = null;
+        let sentenceStartTime = 0;
+        let elapsedBeforeCurrent = 0;
+        let wordSyncInterval = null; // 単語追尾タイマー
+
+        // 初期ロード
+        englishInput.value = localStorage.getItem('listening_eng') || defaultEnglish;
+        parseAndRender();
+
+        // ビュー切替ロジック
+        viewToggleBtn.addEventListener('click', () => {
+            if (currentView === 'focus') {
+                currentView = 'list';
+                focusStage.classList.add('hidden');
+                listStage.classList.remove('hidden');
+                viewIcon.textContent = '🎯';
+                viewText.textContent = 'ステージ';
+                scrollListToActive();
+            } else {
+                currentView = 'focus';
+                listStage.classList.add('hidden');
+                focusStage.classList.remove('hidden');
+                viewIcon.textContent = '📑';
+                viewText.textContent = '一覧表示';
+            }
+        });
+
+        // モーダル制御
+        toggleEditorBtn.addEventListener('click', () => { editorModal.classList.remove('hidden'); });
+        closeEditorBtn.addEventListener('click', () => { editorModal.classList.add('hidden'); });
+        stagePwaBtn.addEventListener('click', () => { installGuideModal.classList.remove('hidden'); });
+        closeGuideBtn.addEventListener('click', () => { installGuideModal.classList.add('hidden'); });
+
+        resetDefaultBtn.addEventListener('click', () => {
+            englishInput.value = defaultEnglish;
+            showToast('初期スクリプトをロード');
+        });
+
+        pasteBtn.addEventListener('click', async () => {
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const txt = await navigator.clipboard.readText();
+                    if (txt) {
+                        englishInput.value = txt;
+                        showToast('クリップボード貼付完了');
+                    }
+                }
+            } catch (e) {
+                showToast('直接入力してください');
+            }
+        });
+
+        saveScriptBtn.addEventListener('click', () => {
+            localStorage.setItem('listening_eng', englishInput.value);
+            clearCache();
+            parseAndRender();
+            editorModal.classList.add('hidden');
+            stopAudio();
+            showToast('スクリプトを再構築しました');
+        });
+
+        stageCopyBtn.addEventListener('click', () => {
+            if (sentences[currentIndex]) {
+                try {
+                    const temp = document.createElement('textarea');
+                    temp.value = sentences[currentIndex];
+                    document.body.appendChild(temp);
+                    temp.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(temp);
+                    showToast('現在の文をコピー');
+                } catch (e) {
+                    showToast('コピーできませんでした');
+                }
+            }
+        });
+
+        readSlowerChip.addEventListener('click', () => {
+            rateSelect.value = '0.75';
+            rateBadge.textContent = '0.75x';
+            clearCache();
+            calculateDurations();
+            if (isPlaying) {
+                playSentence(currentIndex);
+            }
+            showToast('0.75x 精聴モード設定');
+        });
+
+        repeatBtn.addEventListener('click', () => {
+            isSingleRepeat = !isSingleRepeat;
+            if (isSingleRepeat) {
+                repeatBtn.classList.add('border-indigo-500', 'bg-indigo-500/20', 'text-indigo-300');
+                showToast('1文ループ: ON');
+            } else {
+                repeatBtn.classList.remove('border-indigo-500', 'bg-indigo-500/20', 'text-indigo-300');
+                showToast('1文ループ: OFF');
+            }
+        });
+
+        ghostPrevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateActiveDisplay();
+                if (isPlaying) playSentence(currentIndex);
+            }
+        });
+
+        ghostNextBtn.addEventListener('click', () => {
+            if (currentIndex < sentences.length - 1) {
+                currentIndex++;
+                updateActiveDisplay();
+                if (isPlaying) playSentence(currentIndex);
+            }
+        });
+
+        function clearCache() {
+            Object.values(audioCache).forEach(url => {
+                if (url && typeof url === 'string' && url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+            audioCache = {};
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-6 left-1/2 -translate-x-1/2 glass-chassis text-indigo-300 text-xs font-mono-tech px-4 py-2 rounded-full shadow-2xl z-50 transition-all duration-300 flex items-center gap-2 border border-indigo-500/30';
+            toast.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span><span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%, -10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 1800);
+        }
+
+        function formatTime(sec) {
+            const s = Math.max(0, Math.floor(sec));
+            const m = Math.floor(s / 60);
+            const remain = s % 60;
+            return `${String(m).padStart(2, '0')}:${String(remain).padStart(2, '0')}`;
+        }
+
+        function calculateDurations() {
+            const rate = parseFloat(rateSelect.value) || 1.0;
+            sentenceDurations = [];
+            cumulativeDurations = [0];
+            totalEstimatedTime = 0;
+
+            sentences.forEach(s => {
+                const words = s.trim().split(/\s+/).filter(w => w.length > 0).length;
+                const dur = Math.max(1.3, (words / 2.3)) / rate;
+                sentenceDurations.push(dur);
+                totalEstimatedTime += dur;
+                cumulativeDurations.push(totalEstimatedTime);
+            });
+
+            timeTotal.textContent = `/ ${formatTime(totalEstimatedTime)}`;
+            updateTimerDisplay();
+        }
+
+        function parseAndRender() {
+            const text = englishInput.value.trim();
+            sentences = text ? text.match(/[^.!?\n]+[.!?\n]*/g) || [text] : [];
+            sentences = sentences.map(s => s.trim()).filter(s => s.length > 0);
+
+            if (sentences.length === 0) {
+                stageSentenceText.textContent = "No sentences configured.";
+                stageIndexCurrent.textContent = "00";
+                stageIndexTotal.textContent = "00";
+                scriptContainer.innerHTML = '<div class="text-center text-slate-500 py-12 text-xs font-mono-tech">EMPTY</div>';
+                return;
+            }
+
+            calculateDurations();
+
+            stageIndexTotal.textContent = String(sentences.length).padStart(2, '0');
+            scriptCount.textContent = `${sentences.length} sentences`;
+
+            // スクリプト一覧の再描画
+            scriptContainer.innerHTML = '';
+            sentences.forEach((sent, idx) => {
+                const row = document.createElement('div');
+                row.className = `script-row p-3 rounded-2xl glass-pill flex items-start space-x-3 cursor-pointer ${idx === 0 ? 'active' : ''}`;
+                row.dataset.index = idx;
+
+                row.innerHTML = `
+                    <span class="row-num font-mono-tech text-xs text-slate-500 pt-0.5 w-6 text-right shrink-0">${String(idx + 1).padStart(2, '0')}</span>
+                    <p class="row-text text-sm text-slate-300 leading-relaxed break-words flex-1">${sent}</p>
+                `;
+
+                row.addEventListener('click', () => {
+                    currentIndex = idx;
+                    updateActiveDisplay();
+                    playSentence(currentIndex);
+                });
+
+                scriptContainer.appendChild(row);
+            });
+
+            updateActiveDisplay();
+            preloadAhead(0);
+        }
+
+        function updateActiveDisplay() {
+            if (sentences.length === 0) return;
+
+            stopWordSync();
+
+            // ステージ文更新 (単語単位でスパンに分割展開)
+            stageSentenceText.style.opacity = '0';
+            stageSentenceText.style.transform = 'translateY(6px)';
+            setTimeout(() => {
+                renderStageWords(sentences[currentIndex]);
+                stageSentenceText.style.transition = 'all 0.3s ease';
+                stageSentenceText.style.opacity = '1';
+                stageSentenceText.style.transform = 'translateY(0)';
+            }, 100);
+
+            stageIndexCurrent.textContent = String(currentIndex + 1).padStart(2, '0');
+
+            // ゴーストプレビュー
+            if (currentIndex > 0) {
+                ghostPrevText.textContent = sentences[currentIndex - 1];
+                ghostPrevBtn.style.visibility = 'visible';
+            } else {
+                ghostPrevBtn.style.visibility = 'hidden';
+            }
+
+            if (currentIndex < sentences.length - 1) {
+                ghostNextText.textContent = sentences[currentIndex + 1];
+                ghostNextBtn.style.visibility = 'visible';
+            } else {
+                ghostNextBtn.style.visibility = 'hidden';
+            }
+
+            // リストハイライト
+            const rows = scriptContainer.querySelectorAll('.script-row');
+            rows.forEach((r, i) => {
+                if (i === currentIndex) {
+                    r.classList.add('active');
+                } else {
+                    r.classList.remove('active');
+                }
+            });
+
+            if (currentView === 'list') {
+                scrollListToActive();
+            }
+
+            updateProgress();
+            updateTimerDisplay();
+        }
+
+        // 単語スパン描画
+        function renderStageWords(sentenceText) {
+            stageSentenceText.innerHTML = '';
+            if (!sentenceText) return;
+
+            // 単語と区切り記号を分割
+            const words = sentenceText.trim().split(/\s+/).filter(w => w.length > 0);
+            words.forEach((w, wIdx) => {
+                const span = document.createElement('span');
+                span.className = 'stage-word';
+                span.dataset.wordIndex = wIdx;
+                span.textContent = w;
+                stageSentenceText.appendChild(span);
+            });
+        }
+
+        // 単語ハイライト制御
+        function highlightWordIndex(targetIndex) {
+            const wordElements = stageSentenceText.querySelectorAll('.stage-word');
+            wordElements.forEach((el, idx) => {
+                el.classList.remove('current', 'passed');
+                if (idx < targetIndex) {
+                    el.classList.add('passed');
+                } else if (idx === targetIndex) {
+                    el.classList.add('current');
+                }
+            });
+        }
+
+        function resetWordHighlight(passed = false) {
+            const wordElements = stageSentenceText.querySelectorAll('.stage-word');
+            wordElements.forEach(el => {
+                el.classList.remove('current');
+                if (passed) {
+                    el.classList.add('passed');
+                } else {
+                    el.classList.remove('passed');
+                }
+            });
+        }
+
+        function stopWordSync() {
+            if (wordSyncInterval) {
+                clearInterval(wordSyncInterval);
+                wordSyncInterval = null;
+            }
+        }
+
+        // 外部オーディオ再生時の単語ハイライト追尾エンジン
+        function startAudioWordSync(targetDuration) {
+            stopWordSync();
+            const words = stageSentenceText.querySelectorAll('.stage-word');
+            if (words.length === 0) return;
+
+            const startTime = Date.now();
+            const totalMs = (targetDuration || sentenceDurations[currentIndex] || 2.0) * 1000;
+
+            // 各単語の文字長に応じて時間配分を算出
+            const lengths = Array.from(words).map(w => Math.max(2, w.textContent.replace(/[^a-zA-Z0-9]/g, '').length));
+            const totalLen = lengths.reduce((a, b) => a + b, 0);
+
+            // 単語ごとのミリ秒タイムスタンプ
+            let acc = 0;
+            const checkpoints = lengths.map(len => {
+                const startMs = acc;
+                const dur = (len / totalLen) * totalMs;
+                acc += dur;
+                return { startMs, endMs: acc };
+            });
+
+            wordSyncInterval = setInterval(() => {
+                if (!isPlaying) {
+                    stopWordSync();
+                    return;
+                }
+                const elapsed = (Date.now() - startTime);
+                let activeIdx = checkpoints.findIndex(cp => elapsed >= cp.startMs && elapsed < cp.endMs);
+                if (activeIdx === -1 && elapsed >= totalMs) {
+                    activeIdx = words.length - 1;
+                }
+                if (activeIdx !== -1) {
+                    highlightWordIndex(activeIdx);
+                }
+            }, 40);
+        }
+
+        function scrollListToActive() {
+            const activeRow = scriptContainer.querySelector('.script-row.active');
+            if (activeRow) {
+                const targetTop = activeRow.offsetTop - scriptContainer.offsetTop - 80;
+                scriptContainer.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+            }
+        }
+
+        function updateProgress() {
+            if (sentences.length <= 1) {
+                progressBar.value = 0;
+                return;
+            }
+            const prog = (currentIndex / (sentences.length - 1)) * 100;
+            progressBar.value = prog;
+        }
+
+        function updateTimerDisplay() {
+            const currentTotalElapsed = cumulativeDurations[currentIndex] || 0;
+            timeCurrent.textContent = formatTime(currentTotalElapsed);
+        }
+
+        function startTimer() {
+            stopTimer();
+            sentenceStartTime = Date.now();
+            elapsedBeforeCurrent = cumulativeDurations[currentIndex] || 0;
+
+            timerInterval = setInterval(() => {
+                if (!isPlaying) return;
+                const sentenceElapsed = (Date.now() - sentenceStartTime) / 1000;
+                const totalElapsed = Math.min(totalEstimatedTime, elapsedBeforeCurrent + sentenceElapsed);
+                timeCurrent.textContent = formatTime(totalElapsed);
+            }, 200);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function preloadAhead(fromIdx) {
+            const rate = parseFloat(rateSelect.value);
+            [fromIdx, fromIdx + 1, fromIdx + 2].forEach(idx => {
+                if (idx >= 0 && idx < sentences.length) {
+                    fetchAudio(sentences[idx], rate);
+                }
+            });
+        }
+
+        async function fetchAudio(text, rate) {
+            const key = `${text}_${rate}`;
+            if (audioCache[key]) return audioCache[key];
+
+            try {
+                const params = new URLSearchParams({ text, rate, speed: rate, lang: 'en-US' });
+                const res = await fetch(`${API_BASE_URL}/?${params.toString()}`);
+
+                if (!res.ok) {
+                    const postRes = await fetch(`${API_BASE_URL}/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text, rate, speed: rate, lang: 'en-US' })
+                    });
+                    if (!postRes.ok) throw new Error('API down');
+                    const blob = await postRes.blob();
+                    const url = URL.createObjectURL(blob);
+                    audioCache[key] = url;
+                    return url;
+                }
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                audioCache[key] = url;
+                return url;
+            } catch (err) {
+                return null;
+            }
+        }
+
+        async function playSentence(index) {
+            if (index < 0 || index >= sentences.length) {
+                stopAudio();
+                return;
+            }
+
+            const currentToken = ++playToken;
+            stopAudio(false);
+
+            currentIndex = index;
+            updateActiveDisplay();
+            isPlaying = true;
+            updatePlayUI();
+
+            statusChip.textContent = 'STREAMING';
+            orbCore.style.transform = 'translate(-50%, -10%) scale(1.3)';
+
+            preloadAhead(currentIndex + 1);
+
+            const text = sentences[currentIndex];
+            const rate = parseFloat(rateSelect.value);
+            const audioSrc = await fetchAudio(text, rate);
+
+            if (currentToken !== playToken || !isPlaying) return;
+
+            if (audioSrc) {
+                audioPlayer.src = audioSrc;
+                audioPlayer.playbackRate = 1.0;
+
+                audioPlayer.onloadedmetadata = () => {
+                    if (isPlaying && currentToken === playToken) {
+                        const actualDur = audioPlayer.duration && !isNaN(audioPlayer.duration) ? audioPlayer.duration : sentenceDurations[currentIndex];
+                        startAudioWordSync(actualDur);
+                    }
+                };
+
+                audioPlayer.onended = () => {
+                    if (!isPlaying || currentToken !== playToken) return;
+                    resetWordHighlight(true);
+                    handleSentenceEnd();
+                };
+
+                audioPlayer.onerror = () => {
+                    if (currentToken === playToken) playFallback(text, rate, currentToken);
+                };
+
+                audioPlayer.play().then(() => {
+                    startTimer();
+                    statusChip.textContent = 'RESONATING';
+                    // metadataが既にロード済みの場合のフォールバック起動
+                    if (audioPlayer.duration && !isNaN(audioPlayer.duration)) {
+                        startAudioWordSync(audioPlayer.duration);
+                    } else {
+                        startAudioWordSync(sentenceDurations[currentIndex]);
+                    }
+                }).catch(() => {
+                    playFallback(text, rate, currentToken);
+                });
+            } else {
+                playFallback(text, rate, currentToken);
+            }
+        }
+
+        function handleSentenceEnd() {
+            stopWordSync();
+            if (isSingleRepeat) {
+                playSentence(currentIndex);
+            } else if (currentIndex < sentences.length - 1) {
+                playSentence(currentIndex + 1);
+            } else {
+                stopAudio();
+                timeCurrent.textContent = formatTime(totalEstimatedTime);
+                statusChip.textContent = 'COMPLETED';
+            }
+        }
+
+        function playFallback(text, rate, token) {
+            window.speechSynthesis.cancel();
+            setTimeout(() => {
+                if (!isPlaying || token !== playToken) return;
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'en-US';
+                utter.rate = rate;
+
+                const voices = window.speechSynthesis.getVoices();
+                const v = voices.find(vo => vo.lang.startsWith('en') && !vo.name.includes('Google'));
+                if (v) utter.voice = v;
+
+                const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+
+                // Web Speech API の単語バウンダリ検出
+                utter.onboundary = (event) => {
+                    if (token !== playToken) return;
+                    if (event.name === 'word') {
+                        // charIndexから該当単語のインデックスを割り出し
+                        const charPos = event.charIndex;
+                        let count = 0;
+                        let foundIdx = 0;
+                        for (let i = 0; i < words.length; i++) {
+                            const w = words[i];
+                            const idxInText = text.indexOf(w, count);
+                            if (charPos >= idxInText && charPos < idxInText + w.length + 1) {
+                                foundIdx = i;
+                                break;
+                            }
+                            count = idxInText + w.length;
+                        }
+                        highlightWordIndex(foundIdx);
+                    }
+                };
+
+                utter.onstart = () => {
+                    if (token === playToken) {
+                        startTimer();
+                        statusChip.textContent = 'SYNTHESIS';
+                    }
+                };
+                utter.onend = () => {
+                    if (isPlaying && token === playToken) {
+                        resetWordHighlight(true);
+                        handleSentenceEnd();
+                    }
+                };
+                utter.onerror = () => stopAudio();
+
+                window.speechSynthesis.speak(utter);
+            }, 60);
+        }
+
+        function stopAudio(resetToken = true) {
+            if (resetToken) playToken++;
+            stopWordSync();
+            resetWordHighlight(false);
+            window.speechSynthesis.cancel();
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            isPlaying = false;
+            stopTimer();
+            statusChip.textContent = 'STANDBY';
+            orbCore.style.transform = 'translate(-50%, -20%) scale(0.9)';
+            updatePlayUI();
+        }
+
+        function updatePlayUI() {
+            if (isPlaying) {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                sonarWave.classList.add('is-playing');
+            } else {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                sonarWave.classList.remove('is-playing');
+            }
+        }
+
+        // コントローラーイベント
+        playPauseBtn.addEventListener('click', () => {
+            if (sentences.length === 0) return;
+            if (isPlaying) {
+                stopAudio();
+            } else {
+                playSentence(currentIndex);
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateActiveDisplay();
+                if (isPlaying) playSentence(currentIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < sentences.length - 1) {
+                currentIndex++;
+                updateActiveDisplay();
+                if (isPlaying) playSentence(currentIndex);
+            }
+        });
+
+        progressBar.addEventListener('input', (e) => {
+            if (sentences.length <= 1) return;
+            const idx = Math.round((e.target.value / 100) * (sentences.length - 1));
+            currentIndex = idx;
+            updateActiveDisplay();
+            if (isPlaying) playSentence(currentIndex);
+        });
+
+        rateSelect.addEventListener('change', () => {
+            rateBadge.textContent = `${rateSelect.value}x`;
+            clearCache();
+            calculateDurations();
+            if (isPlaying) playSentence(currentIndex);
+        });
+    </script>
 </body>
 </html>

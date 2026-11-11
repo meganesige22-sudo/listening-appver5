@@ -1,435 +1,694 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英語リスニング学習アプリ (バックグラウンド対応)</title>
-    <meta name="theme-color" content="#2563eb">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Listening Study">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .highlight {
-            background-color: #fef08a;
-            border-left: 4px solid #eab308;
-            padding-left: 0.75rem;
-            transition: all 0.2s ease;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>英語リスニング学習アプリ</title>
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Listening Study">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .sentence-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .sentence-card.active {
+            background-color: #eff6ff; /* blue-50 */
+            border-color: #3b82f6; /* blue-500 */
+            box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.15);
+            transform: scale(1.01);
+        }
+
+        #subtitles-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        #subtitles-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        #subtitles-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+        #subtitles-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800 pb-28">
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-blue-200">
 
-    <!-- ヘッダー -->
-    <header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-20">
-        <div class="max-w-xl mx-auto flex justify-between items-center">
-            <h1 class="text-lg font-bold tracking-wide">Listening Study</h1>
-            <div class="flex space-x-2">
-                <button id="install-guide-btn" class="bg-blue-500 hover:bg-blue-700 text-xs px-2.5 py-1.5 rounded-lg font-medium transition" title="ホーム画面に追加する方法">
-                    📱 ホームへ追加
-                </button>
-                <button id="toggle-input-btn" class="bg-blue-500 hover:bg-blue-700 text-xs px-3 py-1.5 rounded-lg font-medium transition">
-                    英文設定
-                </button>
-            </div>
-        </div>
-    </header>
+    <!-- ヘッダー -->
+    <header class="bg-blue-600 text-white shadow-md sticky top-0 z-20">
+        <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold text-white text-base">
+                    🎧
+                </div>
+                <h1 class="text-lg font-bold tracking-tight">Listening Study</h1>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button id="install-guide-btn" class="bg-white/10 hover:bg-white/20 active:bg-white/30 text-xs px-2.5 py-1.5 rounded-lg font-medium transition backdrop-blur-sm flex items-center space-x-1">
+                    <span>📱 ホーム追加</span>
+                </button>
+                <button id="toggle-input-btn" class="bg-white text-blue-600 hover:bg-blue-50 font-semibold text-xs px-3 py-1.5 rounded-lg transition shadow-sm">
+                    英文設定
+                </button>
+            </div>
+        </div>
+    </header>
 
-    <main class="max-w-xl mx-auto p-4 space-y-4">
+    <main class="max-w-xl mx-auto w-full p-4 space-y-4 flex-1">
 
-        <!-- ホーム画面追加の案内モーダル -->
-        <div id="install-modal" class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-xs text-blue-900 hidden space-y-2">
-            <div class="flex justify-between items-center font-bold">
-                <span>💡 ホーム画面への追加方法</span>
-                <button id="close-modal-btn" class="text-blue-500 hover:text-blue-700 text-sm font-bold">×</button>
-            </div>
-            <p>このアプリをいつでもすぐ起動できるように、スマホのホーム画面に常駐させることができます。</p>
-            <ul class="list-disc pl-4 space-y-1">
-                <li><strong>iPhone (Safari):</strong> 画面下部の共有ボタンをタップ ＞ 「ホーム画面に追加」を選択。</li>
-                <li><strong>Android (Chrome):</strong> 画面右上のメニューをタップ ＞ 「ホーム画面に追加」を選択。</li>
-            </ul>
-        </div>
+        <!-- ホーム画面追加の案内モーダル -->
+        <div id="install-modal" class="bg-blue-50 border border-blue-200 p-4 rounded-2xl text-xs text-blue-900 hidden space-y-2 shadow-sm animate-fade-in">
+            <div class="flex justify-between items-center font-bold text-sm">
+                <span class="flex items-center space-x-1">
+                    <span>💡</span>
+                    <span>ホーム画面への追加方法</span>
+                </span>
+                <button id="close-modal-btn" class="text-blue-400 hover:text-blue-700 w-6 h-6 flex items-center justify-center text-lg rounded-full">✕</button>
+            </div>
+            <p class="text-blue-800 leading-relaxed">アプリ感覚ですぐ起動できるようにスマホのホーム画面に追加できます。</p>
+            <ul class="list-disc pl-5 space-y-1 text-blue-800">
+                <li><strong>iPhone (Safari):</strong> 画面下の共有ボタン ➔ 「ホーム画面に追加」</li>
+                <li><strong>Android (Chrome):</strong> 画面右上のメニュー ➔ 「ホーム画面に追加」</li>
+            </ul>
+        </div>
 
-        <!-- 1. 英文入力エリア -->
-        <section id="input-section" class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hidden">
-            <div class="flex justify-between items-center mb-2">
-                <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">英文テキスト入力</h2>
-                <button id="paste-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-2.5 py-1 rounded-md font-medium transition flex items-center space-x-1">
-                    <span>クリップボードから貼付け</span>
-                </button>
-            </div>
-            <div class="space-y-3">
-                <textarea id="english-input" rows="5" class="w-full p-3 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="ここに英語のテキストを入力してください。"></textarea>
-                <button id="save-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-sm">
-                    保存してスクリプトに反映
-                </button>
-            </div>
-        </section>
+        <!-- 英文入力エリア -->
+        <section id="input-section" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 hidden transition-all duration-300">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1">
+                    <span>✍️</span>
+                    <span>英文テキスト入力</span>
+                </h2>
+                <button id="paste-btn" class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs px-2.5 py-1.5 rounded-lg font-medium transition flex items-center space-x-1">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>貼り付け</span>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <textarea id="english-input" rows="6" class="w-full p-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition leading-relaxed" placeholder="ここに英語のテキストを入力してください..."></textarea>
+                
+                <div class="flex space-x-2">
+                    <button id="save-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-sm flex items-center justify-center space-x-1">
+                        <span>保存してスクリプトを更新</span>
+                    </button>
+                </div>
+            </div>
+        </section>
 
-        <!-- 2. 中央の再生エリアとオプション -->
-        <section class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col items-center justify-center space-y-4">
-            <div class="flex flex-col items-center justify-center space-y-2">
-                <button id="main-play-pause-btn" class="bg-blue-600 hover:bg-blue-700 text-white p-5 rounded-full shadow-lg transition flex items-center justify-center w-16 h-16 transform active:scale-95 focus:outline-none">
-                    <svg id="main-play-icon" class="w-8 h-8 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <svg id="main-pause-icon" class="w-8 h-8 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </button>
-                <span class="text-xs text-gray-500 font-medium" id="center-play-label">タップして再生 / 一時停止</span>
-            </div>
+        <!-- 字幕表示エリア -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col" style="height: calc(100vh - 290px); min-height: 380px;">
+            <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 flex justify-between items-center shrink-0">
+                <span class="flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+                    <span>スクリプト（タップで再生）</span>
+                </span>
+                <div class="flex items-center space-x-2">
+                    <span id="current-position-label" class="bg-slate-200/70 text-slate-600 font-mono px-2 py-0.5 rounded-full text-[11px]">0 / 0</span>
+                </div>
+            </div>
+            <div id="subtitles-container" class="p-3 space-y-2.5 overflow-y-auto flex-1 scroll-smooth">
+                <div class="text-center text-slate-400 py-12 text-sm">
+                    読み込み中...
+                </div>
+            </div>
+        </section>
 
-            <div class="flex items-center justify-center space-x-6 text-xs text-gray-600 pt-2 border-t w-full">
-                <label class="flex items-center space-x-1.5 cursor-pointer">
-                    <input type="checkbox" id="toggle-eng" checked class="w-4 h-4 text-blue-600 rounded">
-                    <span>英文表示</span>
-                </label>
-                <label class="flex items-center space-x-1.5 cursor-pointer">
-                    <input type="checkbox" id="loop-one" class="w-4 h-4 text-blue-600 rounded">
-                    <span>1文リピート</span>
-                </label>
-            </div>
-        </section>
+    </main>
 
-        <!-- 3. 字幕表示エリア -->
-        <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="p-3 bg-gray-100 border-b text-xs font-semibold text-gray-500 flex justify-between items-center">
-                <span>スクリプト（タップで選択）</span>
-                <span id="current-position-label">0 / 0</span>
-            </div>
-            <div id="subtitles-container" class="p-4 space-y-3 max-h-[52vh] overflow-y-auto">
-                <div class="text-center text-gray-400 py-8 text-sm">
-                    読み込み中...
-                </div>
-            </div>
-        </section>
+    <!-- 固定コントロール（画面下部） -->
+    <footer class="sticky bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-4 shadow-lg z-30">
+        <div class="max-w-xl mx-auto space-y-2.5">
+            
+            <!-- タイムカウンター & プログレスバー -->
+            <div class="space-y-1 px-1">
+                <div class="flex justify-between items-center text-[11px] font-mono text-slate-500">
+                    <span id="time-display" class="text-blue-600 font-semibold">00:00 / 00:00</span>
+                </div>
+                <input type="range" id="progress-bar" min="0" max="100" value="0" class="w-full accent-blue-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+            </div>
 
-    </main>
+            <!-- メインコントローラー -->
+            <div class="flex items-center justify-around px-2 pt-1">
+                
+                <!-- 制御ボタン群 -->
+                <div class="flex items-center space-x-6">
+                    <!-- 前へ -->
+                    <button id="prev-btn" class="p-2.5 text-slate-600 hover:text-blue-600 active:scale-95 transition flex flex-col items-center" title="前の文へ">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+                        <span class="text-[10px] text-slate-400 mt-0.5">前へ</span>
+                    </button>
 
-    <!-- 4. 固定コントロール（画面下部） -->
-    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 shadow-lg z-30">
-        <div class="max-w-xl mx-auto space-y-2">
-            <div class="flex items-center space-x-2">
-                <input type="range" id="progress-bar" min="0" max="100" value="0" class="w-full accent-blue-600 cursor-pointer">
-            </div>
+                    <!-- 再生 / 一時停止 -->
+                    <button id="play-pause-btn" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-4 rounded-full shadow-md hover:shadow-lg transition flex items-center justify-center transform active:scale-95 focus:outline-none" title="再生 / 一時停止">
+                        <svg id="play-icon" class="w-6 h-6 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg id="pause-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </button>
 
-            <div class="flex items-center justify-around">
-                <button id="prev-btn" class="p-2 text-gray-600 hover:text-blue-600 transition flex flex-col items-center" title="前の文へ">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
-                    <span class="text-[10px] text-gray-400">前へ</span>
-                </button>
+                    <!-- 次へ -->
+                    <button id="next-btn" class="p-2.5 text-slate-600 hover:text-blue-600 active:scale-95 transition flex flex-col items-center" title="次の文へ">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                        <span class="text-[10px] text-slate-400 mt-0.5">次へ</span>
+                    </button>
+                </div>
 
-                <button id="stop-btn" class="p-2 text-gray-600 hover:text-red-600 transition flex flex-col items-center" title="停止">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6v4H9z"/></svg>
-                    <span class="text-[10px] text-gray-400">停止</span>
-                </button>
+                <!-- 音声選択 & 再生速度 -->
+                <div class="flex items-center space-x-2">
+                    <div class="flex flex-col items-center">
+                        <select id="rate-select" class="bg-slate-100 border border-slate-200 rounded-lg text-xs p-1.5 font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="0.5">0.5x</option>
+                            <option value="0.75">0.75x</option>
+                            <option value="1" selected>1.0x</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2.0x</option>
+                        </select>
+                        <span class="text-[10px] text-slate-400 mt-0.5">再生速度</span>
+                    </div>
+                </div>
 
-                <button id="next-btn" class="p-2 text-gray-600 hover:text-blue-600 transition flex flex-col items-center" title="次の文へ">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
-                    <span class="text-[10px] text-gray-400">次へ</span>
-                </button>
+            </div>
+        </div>
+    </footer>
 
-                <div class="flex flex-col items-center">
-                    <select id="rate-select" class="bg-gray-100 border border-gray-300 rounded-lg text-xs p-1.5 font-medium focus:outline-none">
-                        <option value="0.5">0.5x</option>
-                        <option value="0.75">0.75x</option>
-                        <option value="1" selected>1.0x</option>
-                        <option value="1.25">1.25x</option>
-                        <option value="1.5">1.5x</option>
-                        <option value="2">2.0x</option>
-                    </select>
-                    <span class="text-[10px] text-gray-400 mt-0.5">速度</span>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <!-- バックグラウンド維持および音声再生用のメインオーディオ要素 -->
+    <audio id="bg-audio" playsinline style="display:none;"></audio>
 
-    <!-- バックグラウンド維持用の隠しオーディオ要素 -->
-    <audio id="bg-audio" loop playsinline style="display:none;"></audio>
+    <script>
+        const API_BASE_URL = 'https://onnsei-80988359742.asia-northeast1.run.app';
 
-    <script>
-        const defaultEnglish = `Hello and welcome to this English listening practice session. 
-Regular input is the key to improving your listening skills. 
-Try to follow the subtitles as you listen to each sentence. 
-You can adjust the playback speed, repeat sentences, and review comfortably. 
+        const defaultEnglish = `Hello and welcome to this English listening practice session.
+Regular input is the key to improving your listening skills.
+Try to follow the subtitles as you listen to each sentence.
+You can adjust the playback speed, repeat sentences, and review comfortably.
 Let's make this a daily habit for better fluency!`;
 
-        const englishInput = document.getElementById('english-input');
-        const saveBtn = document.getElementById('save-btn');
-        const pasteBtn = document.getElementById('paste-btn');
-        const inputSection = document.getElementById('input-section');
-        const toggleInputBtn = document.getElementById('toggle-input-btn');
-        const installGuideBtn = document.getElementById('install-guide-btn');
-        const installModal = document.getElementById('install-modal');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const subtitlesContainer = document.getElementById('subtitles-container');
-        
-        const mainPlayPauseBtn = document.getElementById('main-play-pause-btn');
-        const mainPlayIcon = document.getElementById('main-play-icon');
-        const mainPauseIcon = document.getElementById('main-pause-icon');
-        const centerPlayLabel = document.getElementById('center-play-label');
+        // DOM要素の参照
+        const englishInput = document.getElementById('english-input');
+        const saveBtn = document.getElementById('save-btn');
+        const pasteBtn = document.getElementById('paste-btn');
+        const inputSection = document.getElementById('input-section');
+        const toggleInputBtn = document.getElementById('toggle-input-btn');
+        const installGuideBtn = document.getElementById('install-guide-btn');
+        const installModal = document.getElementById('install-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const subtitlesContainer = document.getElementById('subtitles-container');
+        
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
 
-        const stopBtn = document.getElementById('stop-btn');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const rateSelect = document.getElementById('rate-select');
-        const progressBar = document.getElementById('progress-bar');
-        const currentPositionLabel = document.getElementById('current-position-label');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const rateSelect = document.getElementById('rate-select');
+        const progressBar = document.getElementById('progress-bar');
+        const currentPositionLabel = document.getElementById('current-position-label');
+        const timeDisplay = document.getElementById('time-display');
 
-        const toggleEng = document.getElementById('toggle-eng');
-        const loopOne = document.getElementById('loop-one');
-        const bgAudio = document.getElementById('bg-audio');
+        const audioPlayer = document.getElementById('bg-audio');
 
-        let sentences = [];
-        let currentIndex = 0;
-        let isPlaying = false;
-        let currentUtterance = null;
-        let silentAudioUrl = "";
+        // 状態変数
+        let sentences = [];
+        let sentenceDurations = []; // 各文の推定秒数
+        let cumulativeDurations = []; // 累積時間
+        let totalEstimatedTime = 0; // 全体の推定秒数
 
-        // 無音の短いWAVデータを生成（バックグラウンドでオーディオセッションを維持するため）
-        function createSilentAudio() {
-            const sampleRate = 8000;
-            const numChannels = 1;
-            const bitsPerSample = 16;
-            const blockAlign = (numChannels * bitsPerSample) / 8;
-            const byteRate = sampleRate * blockAlign;
-            const dataSize = sampleRate * blockAlign * 1; // 1秒の無音
-            const buffer = new ArrayBuffer(44 + dataSize);
-            const view = new DataView(buffer);
+        let currentIndex = 0;
+        let isPlaying = false;
+        let audioCache = {}; // 取得した音声のキャッシュ
 
-            function writeString(view, offset, string) {
-                for (let i = 0; i < string.length; i++) {
-                    view.setUint8(offset + i, string.charCodeAt(i));
-                }
-            }
+        // タイマー・時間計測用
+        let timerInterval = null;
+        let sentenceStartTime = 0;
+        let elapsedBeforeCurrent = 0;
 
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, 36 + dataSize, true);
-            writeString(view, 8, 'WAVE');
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true);
-            view.setUint16(22, numChannels, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, byteRate, true);
-            view.setUint16(32, blockAlign, true);
-            view.setUint16(34, bitsPerSample, true);
-            writeString(view, 36, 'data');
-            view.setUint32(40, dataSize, true);
+        // 初期化処理
+        englishInput.value = localStorage.getItem('listening_eng') || defaultEnglish;
+        parseAndRender();
 
-            const blob = new Blob([view], { type: 'audio/wav' });
-            silentAudioUrl = URL.createObjectURL(blob);
-            bgAudio.src = silentAudioUrl;
-        }
+        // イベントリスナー設定
+        installGuideBtn.addEventListener('click', () => { installModal.classList.toggle('hidden'); });
+        closeModalBtn.addEventListener('click', () => { installModal.classList.add('hidden'); });
+        toggleInputBtn.addEventListener('click', () => {
+            inputSection.classList.toggle('hidden');
+            installModal.classList.add('hidden');
+        });
 
-        createSilentAudio();
+        pasteBtn.addEventListener('click', async () => {
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const text = await navigator.clipboard.readText();
+                    if (text) { 
+                        englishInput.value = text; 
+                    } else { 
+                        showNotice('クリップボードにテキストがありません'); 
+                    }
+                } else {
+                    showNotice('手動でテキストエリアにペーストしてください');
+                }
+            } catch (err) {
+                showNotice('クリップボードの読み取り権限がありません');
+            }
+        });
 
-        // 初期化
-        englishInput.value = localStorage.getItem('listening_eng') || defaultEnglish;
-        parseAndRender();
+        saveBtn.addEventListener('click', () => {
+            localStorage.setItem('listening_eng', englishInput.value);
+            audioCache = {}; // キャッシュのクリア
+            parseAndRender();
+            inputSection.classList.add('hidden');
+            stopAudio();
+        });
 
-        installGuideBtn.addEventListener('click', () => { installModal.classList.toggle('hidden'); });
-        closeModalBtn.addEventListener('click', () => { installModal.classList.add('hidden'); });
-        toggleInputBtn.addEventListener('click', () => {
-            inputSection.classList.toggle('hidden');
-            installModal.classList.add('hidden');
-        });
+        function showNotice(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-16 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-4 py-2 rounded-full shadow-lg z-50 transition-opacity duration-300';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
 
-        pasteBtn.addEventListener('click', async () => {
-            try {
-                const text = await navigator.clipboard.readText();
-                if (text) { englishInput.value = text; } 
-                else { alert('クリップボードにテキストがありません。'); }
-            } catch (err) {
-                alert('クリップボードへのアクセスが許可されていないか、サポートされていません。');
-            }
-        });
+        // 秒数を mm:ss フォーマットに変換する関数
+        function formatTime(seconds) {
+            const sec = Math.max(0, Math.floor(seconds));
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
 
-        saveBtn.addEventListener('click', () => {
-            localStorage.setItem('listening_eng', englishInput.value);
-            parseAndRender();
-            inputSection.classList.add('hidden');
-            stopAudio();
-        });
+        function calculateDurations() {
+            const rate = parseFloat(rateSelect.value) || 1.0;
+            sentenceDurations = [];
+            cumulativeDurations = [0];
+            totalEstimatedTime = 0;
 
-        function parseAndRender() {
-            const engText = englishInput.value.trim();
-            sentences = engText ? engText.match(/[^.!?\n]+[.!?\n]*/g) || [engText] : [];
-            sentences = sentences.map(s => s.trim()).filter(s => s.length > 0);
+            sentences.forEach(s => {
+                const words = s.trim().split(/\s+/).filter(w => w.length > 0).length;
+                const duration = Math.max(1.2, (words / 2.3)) / rate;
+                
+                sentenceDurations.push(duration);
+                totalEstimatedTime += duration;
+                cumulativeDurations.push(totalEstimatedTime);
+            });
 
-            subtitlesContainer.innerHTML = '';
-            if (sentences.length === 0) {
-                subtitlesContainer.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">英文がありません。</div>';
-                currentPositionLabel.textContent = '0 / 0';
-                return;
-            }
+            updateTimerDisplay();
+        }
 
-            sentences.forEach((sent, idx) => {
-                const div = document.createElement('div');
-                div.className = `p-3 rounded-lg border border-gray-100 transition cursor-pointer sentence-item ${idx === 0 ? 'highlight' : ''}`;
-                div.dataset.index = idx;
+        function parseAndRender() {
+            const engText = englishInput.value.trim();
+            
+            sentences = engText ? engText.match(/[^.!?\n]+[.!?\n]*/g) || [engText] : [];
+            sentences = sentences.map(s => s.trim()).filter(s => s.length > 0);
 
-                const engP = document.createElement('p');
-                engP.className = `text-base font-medium text-gray-900 eng-text ${toggleEng.checked ? '' : 'hidden'}`;
-                engP.textContent = sent;
+            subtitlesContainer.innerHTML = '';
+            
+            if (sentences.length === 0) {
+                subtitlesContainer.innerHTML = '<div class="text-center text-slate-400 py-12 text-sm">英文が登録されていません。<br>「英文設定」から登録してください。</div>';
+                currentPositionLabel.textContent = '0 / 0';
+                timeDisplay.textContent = '00:00 / 00:00';
+                return;
+            }
 
-                div.appendChild(engP);
-                div.addEventListener('click', () => {
-                    currentIndex = idx;
-                    playSentence(currentIndex);
-                });
-                subtitlesContainer.appendChild(div);
-            });
+            calculateDurations();
 
-            currentPositionLabel.textContent = `1 / ${sentences.length}`;
-            updateProgress();
-        }
+            sentences.forEach((sent, idx) => {
+                const div = document.createElement('div');
+                div.className = `p-3.5 rounded-xl border border-slate-100 bg-white transition-all duration-200 cursor-pointer hover:border-slate-300 sentence-card ${idx === 0 ? 'active' : ''}`;
+                div.dataset.index = idx;
 
-        toggleEng.addEventListener('change', () => {
-            document.querySelectorAll('.eng-text').forEach(el => {
-                el.classList.toggle('hidden', !toggleEng.checked);
-            });
-        });
+                const flexDiv = document.createElement('div');
+                flexDiv.className = 'flex items-start space-x-3';
 
-        // 音声再生の制御（Web Speech APIとバックグラウンド維持用オーディオを連携）
-        function playSentence(index) {
-            if (index < 0 || index >= sentences.length) {
-                stopAudio();
-                return;
-            }
+                const numSpan = document.createElement('span');
+                numSpan.className = 'text-xs font-semibold text-slate-300 font-mono mt-0.5 select-none w-5 shrink-0 text-right';
+                numSpan.textContent = `${idx + 1}`;
 
-            window.speechSynthesis.cancel();
-            currentIndex = index;
-            updateHighlight();
+                const engP = document.createElement('p');
+                engP.className = 'text-sm sm:text-base font-medium text-slate-800 leading-relaxed break-words flex-1';
+                engP.textContent = sent;
 
-            // iOSなどのバックグラウンド制限を突破するため、無音オーディオを裏で再生状態にする
-            bgAudio.play().catch(() => {});
+                flexDiv.appendChild(numSpan);
+                flexDiv.appendChild(engP);
+                div.appendChild(flexDiv);
 
-            const textToSpeak = sentences[currentIndex];
-            currentUtterance = new SpeechSynthesisUtterance(textToSpeak);
-            currentUtterance.lang = 'en-US';
-            currentUtterance.rate = parseFloat(rateSelect.value);
+                div.addEventListener('click', () => {
+                    currentIndex = idx;
+                    playSentence(currentIndex);
+                });
 
-            currentUtterance.onend = () => {
-                if (!isPlaying) return;
-                
-                if (loopOne.checked) {
-                    playSentence(currentIndex);
-                } else if (currentIndex < sentences.length - 1) {
-                    playSentence(currentIndex + 1);
-                } else {
-                    stopAudio();
-                }
-            };
+                subtitlesContainer.appendChild(div);
+            });
 
-            currentUtterance.onerror = () => {
-                stopAudio();
-            };
+            currentPositionLabel.textContent = `1 / ${sentences.length}`;
+            updateProgress();
+            updateTimerDisplay();
 
-            window.speechSynthesis.speak(currentUtterance);
-            isPlaying = true;
-            updatePlayButtonState();
-        }
+            // スクリプト読み込み時に先頭2文をバックグラウンドでプリロードしておく
+            preloadAhead(0);
+        }
 
-        function updateHighlight() {
-            const items = subtitlesContainer.querySelectorAll('.sentence-item');
-            items.forEach((item, idx) => {
-                if (idx === currentIndex) {
-                    item.classList.add('highlight');
-                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } else {
-                    item.classList.remove('highlight');
-                }
-            });
-            currentPositionLabel.textContent = `${currentIndex + 1} / ${sentences.length}`;
-            updateProgress();
-        }
+        function startTimer() {
+            stopTimer();
+            sentenceStartTime = Date.now();
+            elapsedBeforeCurrent = cumulativeDurations[currentIndex] || 0;
 
-        function updateProgress() {
-            if (sentences.length === 0) {
-                progressBar.value = 0;
-                return;
-            }
-            const progress = (currentIndex / (sentences.length - 1)) * 100;
-            progressBar.value = isNaN(progress) ? 0 : progress;
-        }
+            timerInterval = setInterval(() => {
+                if (!isPlaying) return;
+                const currentSentenceElapsed = (Date.now() - sentenceStartTime) / 1000;
+                const currentTotalElapsed = Math.min(totalEstimatedTime, elapsedBeforeCurrent + currentSentenceElapsed);
+                timeDisplay.textContent = `${formatTime(currentTotalElapsed)} / ${formatTime(totalEstimatedTime)}`;
+            }, 200);
+        }
 
-        function stopAudio() {
-            window.speechSynthesis.cancel();
-            bgAudio.pause();
-            isPlaying = false;
-            updatePlayButtonState();
-        }
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
 
-        function updatePlayButtonState() {
-            if (isPlaying) {
-                mainPlayIcon.classList.add('hidden');
-                mainPauseIcon.classList.remove('hidden');
-                centerPlayLabel.textContent = '再生中... (タップで一時停止)';
-            } else {
-                mainPlayIcon.classList.remove('hidden');
-                mainPauseIcon.classList.add('hidden');
-                centerPlayLabel.textContent = 'タップして再生 / 一時停止';
-            }
-        }
+        function updateTimerDisplay() {
+            const currentTotalElapsed = cumulativeDurations[currentIndex] || 0;
+            timeDisplay.textContent = `${formatTime(currentTotalElapsed)} / ${formatTime(totalEstimatedTime)}`;
+        }
 
-        mainPlayPauseBtn.addEventListener('click', () => {
-            if (sentences.length === 0) return;
+        // 次の文の音声をバックグラウンドで事前取得（プリロード）する関数
+        function preloadAhead(fromIndex) {
+            const currentRate = parseFloat(rateSelect.value);
+            [fromIndex, fromIndex + 1, fromIndex + 2].forEach(idx => {
+                if (idx >= 0 && idx < sentences.length) {
+                    fetchExternalAudio(sentences[idx], currentRate);
+                }
+            });
+        }
 
-            if (isPlaying) {
-                window.speechSynthesis.pause();
-                bgAudio.pause();
-                isPlaying = false;
-                updatePlayButtonState();
-            } else {
-                if (window.speechSynthesis.paused) {
-                    window.speechSynthesis.resume();
-                    bgAudio.play().catch(() => {});
-                    isPlaying = true;
-                    updatePlayButtonState();
-                } else {
-                    playSentence(currentIndex);
-                }
-            }
-        });
+        async function fetchExternalAudio(text, rate) {
+            const cacheKey = `${text}_${rate}`;
 
-        stopBtn.addEventListener('click', () => {
-            stopAudio();
-            currentIndex = 0;
-            updateHighlight();
-        });
+            if (audioCache[cacheKey]) {
+                return audioCache[cacheKey];
+            }
 
-        prevBtn.addEventListener('click', () => {
-            if (currentIndex > 0) {
-                currentIndex--;
-                if (isPlaying) {
-                    playSentence(currentIndex);
-                } else {
-                    updateHighlight();
-                }
-            }
-        });
+            try {
+                const params = new URLSearchParams({
+                    text: text,
+                    rate: rate,
+                    speed: rate,
+                    lang: 'en-US'
+                });
 
-        nextBtn.addEventListener('click', () => {
-            if (currentIndex < sentences.length - 1) {
-                currentIndex++;
-                if (isPlaying) {
-                    playSentence(currentIndex);
-                } else {
-                    updateHighlight();
-                }
-            }
-        });
+                const queryUrl = `${API_BASE_URL}/?${params.toString()}`;
+                const response = await fetch(queryUrl, {
+                    method: 'GET',
+                    headers: { 'Accept': 'audio/mpeg, audio/wav, audio/*, application/json' }
+                });
 
-        progressBar.addEventListener('input', (e) => {
-            if (sentences.length === 0) return;
-            const val = e.target.value;
-            const newIndex = Math.round((val / 100) * (sentences.length - 1));
-            currentIndex = newIndex;
-            if (isPlaying) {
-                playSentence(currentIndex);
-            } else {
-                updateHighlight();
-            }
-        });
-    </script>
+                if (!response.ok) {
+                    const postResponse = await fetch(`${API_BASE_URL}/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text, rate, speed: rate, lang: 'en-US' })
+                    });
+                    
+                    if (!postResponse.ok) throw new Error('API Response not ok');
+                    
+                    const contentType = postResponse.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const json = await postResponse.json();
+                        const audioUrl = json.url || json.audioUrl || json.audio || json.file;
+                        if (audioUrl) {
+                            audioCache[cacheKey] = audioUrl;
+                            return audioUrl;
+                        }
+                    } else {
+                        const blob = await postResponse.blob();
+                        const blobUrl = URL.createObjectURL(blob);
+                        audioCache[cacheKey] = blobUrl;
+                        return blobUrl;
+                    }
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const json = await response.json();
+                    const audioUrl = json.url || json.audioUrl || json.audio || json.file;
+                    if (audioUrl) {
+                        audioCache[cacheKey] = audioUrl;
+                        return audioUrl;
+                    }
+                }
+
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                audioCache[cacheKey] = blobUrl;
+                return blobUrl;
+
+            } catch (err) {
+                console.warn('External TTS API unavailable, fallback to Web Speech API:', err);
+                return null;
+            }
+        }
+
+        async function playSentence(index) {
+            if (index < 0 || index >= sentences.length) {
+                stopAudio();
+                return;
+            }
+
+            stopAudio();
+
+            currentIndex = index;
+            updateHighlight();
+            isPlaying = true;
+            updatePlayButtonState();
+
+            // 現在再生を開始した直後に、次の2文をバックグラウンドで先読み開始
+            preloadAhead(currentIndex + 1);
+
+            const textToSpeak = sentences[currentIndex];
+            const currentRate = parseFloat(rateSelect.value);
+
+            const audioSrc = await fetchExternalAudio(textToSpeak, currentRate);
+
+            if (audioSrc && isPlaying) {
+                audioPlayer.src = audioSrc;
+                audioPlayer.playbackRate = 1.0;
+                
+                audioPlayer.onended = () => {
+                    if (!isPlaying) return;
+                    if (currentIndex < sentences.length - 1) {
+                        playSentence(currentIndex + 1);
+                    } else {
+                        stopAudio();
+                        timeDisplay.textContent = `${formatTime(totalEstimatedTime)} / ${formatTime(totalEstimatedTime)}`;
+                    }
+                };
+
+                audioPlayer.onerror = () => {
+                    playWithWebSpeech(textToSpeak, currentRate);
+                };
+
+                audioPlayer.play().then(() => {
+                    startTimer();
+                    updateMediaSession(textToSpeak);
+                }).catch(() => {
+                    playWithWebSpeech(textToSpeak, currentRate);
+                });
+
+            } else if (isPlaying) {
+                playWithWebSpeech(textToSpeak, currentRate);
+            }
+        }
+
+        function playWithWebSpeech(textToSpeak, rate) {
+            window.speechSynthesis.cancel();
+
+            setTimeout(() => {
+                if (!isPlaying) return;
+
+                const currentUtterance = new SpeechSynthesisUtterance(textToSpeak);
+                currentUtterance.lang = 'en-US';
+                currentUtterance.rate = rate;
+
+                currentUtterance.onstart = () => {
+                    startTimer();
+                };
+
+                currentUtterance.onend = () => {
+                    if (!isPlaying) return;
+                    if (currentIndex < sentences.length - 1) {
+                        playSentence(currentIndex + 1);
+                    } else {
+                        stopAudio();
+                        timeDisplay.textContent = `${formatTime(totalEstimatedTime)} / ${formatTime(totalEstimatedTime)}`;
+                    }
+                };
+
+                currentUtterance.onerror = () => {
+                    stopAudio();
+                };
+
+                window.speechSynthesis.speak(currentUtterance);
+                updateMediaSession(textToSpeak);
+            }, 50);
+        }
+
+        function updateMediaSession(text) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: `文 ${currentIndex + 1} / ${sentences.length}`,
+                    artist: 'Listening Study',
+                    album: text,
+                });
+
+                navigator.mediaSession.setActionHandler('play', () => {
+                    if (!isPlaying) playSentence(currentIndex);
+                });
+                navigator.mediaSession.setActionHandler('pause', () => {
+                    stopAudio();
+                });
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    if (currentIndex > 0) playSentence(currentIndex - 1);
+                });
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    if (currentIndex < sentences.length - 1) playSentence(currentIndex + 1);
+                });
+            }
+        }
+
+        function scrollContainerToActiveItem(activeItem) {
+            if (!activeItem || !subtitlesContainer) return;
+
+            const containerHeight = subtitlesContainer.clientHeight;
+            const itemTop = activeItem.offsetTop - subtitlesContainer.offsetTop;
+            const itemHeight = activeItem.clientHeight;
+
+            const targetScrollTop = itemTop - (containerHeight / 2) + (itemHeight / 2);
+
+            subtitlesContainer.scrollTo({
+                top: Math.max(0, targetScrollTop),
+                behavior: 'smooth'
+            });
+        }
+
+        function updateHighlight() {
+            const items = subtitlesContainer.querySelectorAll('.sentence-card');
+            let activeElement = null;
+
+            items.forEach((item, idx) => {
+                if (idx === currentIndex) {
+                    item.classList.add('active');
+                    activeElement = item;
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            if (activeElement) {
+                scrollContainerToActiveItem(activeElement);
+            }
+
+            currentPositionLabel.textContent = `${currentIndex + 1} / ${sentences.length}`;
+            updateProgress();
+            updateTimerDisplay();
+        }
+
+        function updateProgress() {
+            if (sentences.length === 0) {
+                progressBar.value = 0;
+                return;
+            }
+            const progress = (currentIndex / Math.max(1, sentences.length - 1)) * 100;
+            progressBar.value = isNaN(progress) ? 0 : progress;
+        }
+
+        function stopAudio() {
+            window.speechSynthesis.cancel();
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            isPlaying = false;
+            stopTimer();
+            updatePlayButtonState();
+        }
+
+        function updatePlayButtonState() {
+            if (isPlaying) {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            } else {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            }
+        }
+
+        // ボタンイベント
+        playPauseBtn.addEventListener('click', () => {
+            if (sentences.length === 0) return;
+
+            if (isPlaying) {
+                stopAudio();
+            } else {
+                playSentence(currentIndex);
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                if (isPlaying) {
+                    playSentence(currentIndex);
+                } else {
+                    updateHighlight();
+                }
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < sentences.length - 1) {
+                currentIndex++;
+                if (isPlaying) {
+                    playSentence(currentIndex);
+                } else {
+                    updateHighlight();
+                }
+            }
+        });
+
+        progressBar.addEventListener('input', (e) => {
+            if (sentences.length === 0) return;
+            const val = e.target.value;
+            const newIndex = Math.round((val / 100) * (sentences.length - 1));
+            currentIndex = newIndex;
+            if (isPlaying) {
+                playSentence(currentIndex);
+            } else {
+                updateHighlight();
+            }
+        });
+
+        rateSelect.addEventListener('change', () => {
+            audioCache = {}; // 速度変更時はキャッシュをクリア
+            calculateDurations();
+            if (isPlaying) {
+                playSentence(currentIndex);
+            } else {
+                updateTimerDisplay();
+            }
+        });
+    </script>
 </body>
 </html>
